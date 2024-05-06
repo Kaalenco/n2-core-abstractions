@@ -1,5 +1,5 @@
 ﻿
-namespace N2.Core.Identity;
+namespace N2.Identity;
 
 public enum Priority
 {
