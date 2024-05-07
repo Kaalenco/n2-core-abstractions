@@ -1,5 +1,5 @@
 ﻿
-namespace N2.Identity;
+namespace N2.Core.Identity;
 
 public interface IUserContext
 {
