@@ -2,11 +2,21 @@
 
 public readonly struct RequestResult : IRequestResult, IEquatable<RequestResult>
 {
-    private static RequestResult AcceptedResult = new(203, "Accepted");
-    private static RequestResult BadRequestResult = new(406, "Bad request");
-    private static RequestResult NotFoundResult = new(404, "Not found");
-    private static RequestResult OkResult = new(200, "OK");
-    private static RequestResult TimeOutResult = new (407, "The request data contains a timestamp that is too old.");
+    public const int AcceptedCode = 203;
+    public const int BadRequestCode = 406;
+    public const int NotFoundCode = 404;
+    public const int OkCode = 200;
+    public const int UnauthorizedCode = 403;
+    public const int UnexpectedCode = 500;
+    public const int TimeOutCode = 407;
+
+    private static RequestResult AcceptedResult = new(AcceptedCode, "Accepted");
+    private static RequestResult UnauthorizedResult = new(UnauthorizedCode, "Unauthorized");
+    private static RequestResult BadRequestResult = new(BadRequestCode, "Bad request");
+    private static RequestResult NotFoundResult = new(NotFoundCode, "Not found");
+    private static RequestResult UnexpectedResult = new(UnexpectedCode, "Unexpected exception");
+    private static RequestResult OkResult = new(OkCode, "OK");
+    private static RequestResult TimeOutResult = new (TimeOutCode, "The request data contains a timestamp that is too old.");
 
     public RequestResult(int result, string message) : this()
     {
@@ -20,22 +30,30 @@ public readonly struct RequestResult : IRequestResult, IEquatable<RequestResult>
         Message = init.Item2;
     }
 
-    public readonly bool IsSuccessCode => ResultCode <= 200;
+    public readonly bool IsSuccessCode => ResultCode <= OkCode;
 
     public string Message { get; } = string.Empty;
 
-    public int ResultCode { get; } = 200;
+    public int ResultCode { get; } = OkCode;
 
     public static RequestResult Accepted() => AcceptedResult;
-
-    public static RequestResult Accepted(string message) => new(203, message);
+    public static RequestResult Accepted(string message) => new(AcceptedCode, message);
 
     public static RequestResult BadRequest() => BadRequestResult;
 
     public static RequestResult NotFound() => NotFoundResult;
+    public static RequestResult NotFound(string message) => new(NotFoundCode, message);
+
+    public static RequestResult Unauthorized() => UnauthorizedResult;
+    public static RequestResult Unauthorized(string message) => new(UnauthorizedCode, message);
 
     public static RequestResult Ok() => OkResult;
-    public static RequestResult Ok(string message) => new(200, message);
+    public static RequestResult Ok(string message) => new(OkCode, message);
+
+    public static RequestResult Unexpected() => UnexpectedResult;
+    public static RequestResult Unexpected(string message) => new(UnexpectedCode, message);
+
+    public static RequestResult TimeOut() => TimeOutResult;
 
     public static bool operator !=(RequestResult left, RequestResult right)
     {
@@ -47,7 +65,6 @@ public readonly struct RequestResult : IRequestResult, IEquatable<RequestResult>
         return left.Equals(right);
     }
 
-    public static RequestResult TimeOut() => TimeOutResult;
     public readonly bool Equals(RequestResult other)
     {
         return ResultCode == other.ResultCode && Message == other.Message;
