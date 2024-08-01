@@ -14,7 +14,7 @@
     <IncludeSymbols>False</IncludeSymbols>
     <PackageVersion>1.0.3</PackageVersion>
     <PackageLicenseExpression>AFL-3.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/gjkaal/n2-core-abstractions</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/kaalenco/n2-core-abstractions</PackageProjectUrl>
     <PackageId>n2.core.abstractions</PackageId>
     <Authors>gjkaal</Authors>
     <PackageType>Dependency</PackageType>
