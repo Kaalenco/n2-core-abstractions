@@ -10,13 +10,13 @@ public readonly struct RequestResult : IRequestResult, IEquatable<RequestResult>
     public const int UnexpectedCode = 500;
     public const int TimeOutCode = 407;
 
-    private static RequestResult AcceptedResult = new(AcceptedCode, "Accepted");
-    private static RequestResult UnauthorizedResult = new(UnauthorizedCode, "Unauthorized");
-    private static RequestResult BadRequestResult = new(BadRequestCode, "Bad request");
-    private static RequestResult NotFoundResult = new(NotFoundCode, "Not found");
-    private static RequestResult UnexpectedResult = new(UnexpectedCode, "Unexpected exception");
-    private static RequestResult OkResult = new(OkCode, "OK");
-    private static RequestResult TimeOutResult = new (TimeOutCode, "The request data contains a timestamp that is too old.");
+    private static readonly RequestResult AcceptedResult = new(AcceptedCode, "Accepted");
+    private static readonly RequestResult UnauthorizedResult = new(UnauthorizedCode, "Unauthorized");
+    private static readonly RequestResult BadRequestResult = new(BadRequestCode, "Bad request");
+    private static readonly RequestResult NotFoundResult = new(NotFoundCode, "Not found");
+    private static readonly RequestResult UnexpectedResult = new(UnexpectedCode, "Unexpected exception");
+    private static readonly RequestResult OkResult = new(OkCode, "OK");
+    private static readonly RequestResult TimeOutResult = new(TimeOutCode, "The request data contains a timestamp that is too old.");
 
     public RequestResult(int result, string message) : this()
     {

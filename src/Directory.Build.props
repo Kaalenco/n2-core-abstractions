@@ -17,10 +17,10 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Title>N2-Core</Title>
     <Company>Kaalenco</Company>
-    <Copyright>(c) 2024 - rights reserved</Copyright>
+    <Copyright>(c) 2025 - rights reserved</Copyright>
     <Product>N2.Core for NET8.0</Product>
     <ProductName>N2 Core libraries</ProductName>
-    <ProductVersion>1.0.1</ProductVersion>
+    <ProductVersion>1.1.0</ProductVersion>
     <LangVersion>12</LangVersion>
   </PropertyGroup>
 
@@ -28,18 +28,5 @@
     <CompilerVisibleProperty Include="RootNamespace" />
     <CompilerVisibleProperty Include="ProjectDir" />
   </ItemGroup>
-  
-  <ItemGroup Label="Analyzers">
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" />
-    <PackageReference Include="Roslynator.Analyzers" />
-    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" />
-    <PackageReference Include="Roslynator.Formatting.Analyzers" />
-    <PackageReference Include="SonarAnalyzer.CSharp" />
-    <PackageReference Include="AsyncFixer" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" />
-    <PackageReference Include="Microsoft.Azure.Functions.Analyzers" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Analyzers" />
-  </ItemGroup>
+
 </Project>
