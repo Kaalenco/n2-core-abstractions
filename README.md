@@ -1,2 +1,2 @@
-# n2-core-abstractions
-Core c# library for the basics
+# n2-core
+Basic functionality for any project
