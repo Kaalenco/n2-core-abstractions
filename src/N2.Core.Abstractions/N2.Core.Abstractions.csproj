@@ -12,13 +12,13 @@
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <IncludeSymbols>False</IncludeSymbols>
-    <PackageVersion>1.0.9</PackageVersion>
+    <PackageVersion>1.1.0</PackageVersion>
     <PackageLicenseExpression>AFL-3.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/kaalenco/n2-core-abstractions</PackageProjectUrl>
     <PackageId>n2.core.abstractions</PackageId>
     <Authors>gjkaal</Authors>
     <PackageType>Dependency</PackageType>
-    <RootNamespace>N2.Core</RootNamespace>    
+    <RootNamespace>N2.Core</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Abstractions" Version="21.0.29" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
+    <PackageReference Include="System.IO.Abstractions" Version="22.0.13" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="9.0.4" />
   </ItemGroup>
-  
+
 </Project>
