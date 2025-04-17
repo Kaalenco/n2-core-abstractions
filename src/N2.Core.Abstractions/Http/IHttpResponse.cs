@@ -11,7 +11,6 @@ public interface IHttpResponse
     Stream Body { get; set; }
     Dictionary<string, string> Headers { get; }
     int StatusCode { get; set; }
-    IHttpContext HttpContext { get; }
 
     void Clear();
 
