@@ -48,10 +48,17 @@ public interface IHttpClient
     Task<IHttpResult<TResponse>> GetRelativeAsync<TResponse>(string path);
 
     /// <summary>
+    /// Read a json document from a resource.
+    /// </summary>
+    /// <param name="resourcePath">The fully unified resource indicator.</param>
+    /// <returns></returns>
+    Task<JsonDocument> ReadJsonDocumentAsync(Uri resourcePath);
+
+    /// <summary>
     /// Performs a GET operation using a full resource path.
     /// </summary>
     /// <typeparam name="TResource">Expected type of resource.</typeparam>
-    /// <param name="resourcePath">The full unified resource indicator.</param>
+    /// <param name="resourcePath">The fully unified resource indicator.</param>
     /// <returns></returns>
     Task<IHttpResult<TResource>> GetFromUriAsync<TResource>(Uri resourcePath);
 
