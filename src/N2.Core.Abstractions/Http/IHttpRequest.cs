@@ -1,4 +1,7 @@
+using System.Collections.ObjectModel;
 using System.IO.Pipelines;
+
+using Microsoft.Extensions.Primitives;
 
 namespace N2.Core.Http;
 
@@ -8,7 +11,7 @@ public interface IHttpRequest
     Stream Body { get; }
     string? ContentType { get; }
     long? ContentLength { get; }
-    Dictionary<string, string> Headers { get; }
+    ReadOnlyDictionary<string, string> Headers { get; }
     string Protocol { get; }
     string QueryString { get; }
     string Path { get; }
@@ -17,7 +20,7 @@ public interface IHttpRequest
     bool IsHttps { get; }
     string Scheme { get; }
     string Method { get; }
-    IHttpContext HttpContext { get; }
+    IEnumerable<KeyValuePair<string, StringValues>>? Query { get; }
 
     Task<string> ReadAsStringAsync(CancellationToken cancellationToken = default);
 }
