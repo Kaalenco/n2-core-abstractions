@@ -12,7 +12,7 @@
     <EnableNETAnalyzers>True</EnableNETAnalyzers>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <IncludeSymbols>False</IncludeSymbols>
-    <PackageVersion>1.1.2</PackageVersion>
+    <PackageVersion>1.1.3-pre-0417-a</PackageVersion>
     <PackageLicenseExpression>AFL-3.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/kaalenco/n2-core-abstractions</PackageProjectUrl>
     <PackageId>n2.core.abstractions</PackageId>
