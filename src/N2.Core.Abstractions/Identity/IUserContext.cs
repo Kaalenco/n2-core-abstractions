@@ -1,4 +1,4 @@
-﻿
+
 namespace N2.Core.Identity;
 
 public interface IUserContext
@@ -21,7 +21,7 @@ public interface IUserContext
     bool CanPublish();
     bool CanModifyRights();
     bool CanDesign();
-    bool IsAdmin() => CurrentRoles().Any(m => m == "Admin" || m == "SuperAdmin");
+    bool IsAdmin() => CurrentRoles().Any(m => m == SystemRoles.Admin || m == SystemRoles.SuperAdmin);
 
     /// <summary>
     /// The primary partition key for the user. The partition
