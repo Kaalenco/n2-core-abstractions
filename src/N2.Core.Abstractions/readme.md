@@ -38,6 +38,15 @@ data structures, and other core abstractions in a .NET-based application.
 - **SelectOption**: Represents a selectable option in a dropdown or list.
 - **SelectOptionsExtensions**: Extension methods for working with `SelectOption` objects.
 
+## N2.Core.Dms
+
+The `N2.Core.Dms` namespace provides abstractions for handling document management systems (DMS) in a .NET-based application. 
+It includes interfaces and models to simplify DMS operations.
+
+### Components
+
+- **IDocument**: Represents a document in the DMS, including properties like `Id`, `Name`, and `ContentType`.
+
 ## N2.Core.Http
 
 The `N2.Core.Http` namespace provides abstractions for handling HTTP requests and responses in a .NET-based application. It includes interfaces and models to simplify HTTP communication.
