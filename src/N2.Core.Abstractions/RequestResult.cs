@@ -1,6 +1,21 @@
-﻿namespace N2.Core;
+using System.Text.Json.Serialization;
 
-public readonly struct RequestResult : IRequestResult, IEquatable<RequestResult>
+using N2.Core.Commands;
+
+namespace N2.Core;
+
+public static class RequestResultExtensions
+{
+    public static RequestResult WithHandle(RequestResult requestResult, string handle)
+    {
+        return new RequestResult(
+            requestResult.Status,
+            requestResult.Message ?? requestResult.ToString(),
+            handle);
+    }
+}
+
+public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResult>
 {
     public const int AcceptedCode = 203;
     public const int BadRequestCode = 406;
@@ -20,21 +35,33 @@ public readonly struct RequestResult : IRequestResult, IEquatable<RequestResult>
 
     public RequestResult(int result, string message) : this()
     {
-        ResultCode = result;
+        Status = (ResponseStatus)result;
         Message = message;
+    }
+
+    public RequestResult(ResponseStatus result, string message, string handle) : this()
+    {
+        Status = result;
+        Message = message;
+        Handle = handle;
     }
 
     public RequestResult((int, string) init) : this()
     {
-        ResultCode = init.Item1;
+        Status = (ResponseStatus)init.Item1;
         Message = init.Item2;
     }
 
-    public readonly bool IsSuccessCode => ResultCode <= OkCode;
+    public readonly bool IsSuccessCode => Status < ResponseStatus.NotAccepted;
 
-    public string Message { get; } = string.Empty;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Message { get; } = null;
 
-    public int ResultCode { get; } = OkCode;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Handle { get; } = null;
+
+    public ResponseStatus Status { get; } = (ResponseStatus)OkCode;
+    public int Code => (int)Status;
 
     public static RequestResult Accepted() => AcceptedResult;
     public static RequestResult Accepted(string message) => new(AcceptedCode, message);
@@ -67,7 +94,7 @@ public readonly struct RequestResult : IRequestResult, IEquatable<RequestResult>
 
     public readonly bool Equals(RequestResult other)
     {
-        return ResultCode == other.ResultCode && Message == other.Message;
+        return Status == other.Status && Message == other.Message;
     }
 
     public override readonly bool Equals(object? obj)
@@ -79,12 +106,12 @@ public readonly struct RequestResult : IRequestResult, IEquatable<RequestResult>
 
         if (obj is int x)
         {
-            return ResultCode == x;
+            return Code == x;
         }
 
         if (obj is RequestResult ur)
         {
-            return ResultCode == ur.ResultCode && Message == ur.Message;
+            return Status == ur.Status && Message == ur.Message;
         }
 
         return false;
@@ -92,6 +119,6 @@ public readonly struct RequestResult : IRequestResult, IEquatable<RequestResult>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(ResultCode, Message);
+        return HashCode.Combine(Status, Message);
     }
 }

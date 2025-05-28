@@ -1,4 +1,4 @@
-﻿namespace N2.Core.Models;
+namespace N2.Core.Commands;
 
 /// <summary>
 /// Enum for the different response codes.

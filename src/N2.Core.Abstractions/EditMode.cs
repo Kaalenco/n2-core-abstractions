@@ -1,4 +1,4 @@
-﻿namespace N2.Core.Models;
+namespace N2.Core;
 
 /// <summary>
 /// Enum for the different edit modes.

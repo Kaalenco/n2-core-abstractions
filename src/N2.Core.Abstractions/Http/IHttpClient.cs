@@ -67,8 +67,8 @@ public interface IHttpClient
     /// its result or null when it fails. If the endpoint is a REST endpoint,
     /// a POST indicates the creating of a resource.
     /// </summary>
-    /// <typeparam name="TResponse">Type of expected response</typeparam>
-    /// <typeparam name="TRequest">Type of the message body</typeparam>
+    /// <typeparam name="TResponse">Status of expected response</typeparam>
+    /// <typeparam name="TRequest">Status of the message body</typeparam>
     /// <param name="path">The POST endpoint, relative to the base address.</param>
     /// <param name="value">The body of the message</param>
     /// <returns>An Http result (<see cref="IHttpResult" />)</returns>
@@ -79,7 +79,7 @@ public interface IHttpClient
     /// its result or null when it fails. If the endpoint is a REST endpoint,
     /// a POST indicates the creating of a resource.
     /// </summary>
-    /// <typeparam name="TResource">Type of the resource</typeparam>
+    /// <typeparam name="TResource">Status of the resource</typeparam>
     /// <param name="resourcePath">The full unified resource indicator.</param>
     /// <param name="value">The body of the message</param>
     /// <returns>An Http result (<see cref="IHttpResult" />)</returns>
@@ -90,8 +90,8 @@ public interface IHttpClient
     /// its result or null when it fails. If the endpoint is a REST endpoint,
     /// a PUT indicates updating a resource.
     /// </summary>
-    /// <typeparam name="TResponse">Type of expected response</typeparam>
-    /// <typeparam name="TRequest">Type of the message body</typeparam>
+    /// <typeparam name="TResponse">Status of expected response</typeparam>
+    /// <typeparam name="TRequest">Status of the message body</typeparam>
     /// <param name="path">The POST endpoint, relative to the base address.</param>
     /// <param name="value">The body of the message</param>
     /// <returns>An Http result (<see cref="IHttpResult" />)</returns>
@@ -102,7 +102,7 @@ public interface IHttpClient
     /// its result or null when it fails. If the endpoint is a REST endpoint,
     /// a PUT indicates updating a resource.
     /// </summary>
-    /// <typeparam name="TResource">Type of the resource</typeparam>
+    /// <typeparam name="TResource">Status of the resource</typeparam>
     /// <param name="resourcePath">The full unified resource indicator.</param>
     /// <param name="value">The body of the message</param>
     /// <returns>An Http result (<see cref="IHttpResult" />)</returns>

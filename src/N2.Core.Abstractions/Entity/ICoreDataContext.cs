@@ -1,4 +1,6 @@
-﻿namespace N2.Core.Entity;
+using N2.Core.Commands;
+
+namespace N2.Core.Entity;
 
 /// <summary>
 /// The DataContextFactory is used to create a new instance of the DataContext.
@@ -31,7 +33,7 @@ public interface ICoreDataContext : IDisposable
 
     Task<List<KeyValuePair<string, string>>> GetSelectListAsync(string tableName);
 
-    Task<(int code, string message)> SaveChangesAsync();
+    Task<(ResponseStatus status, string message)> SaveChangesAsync();
 
     IQueryable<IChangeLog> ChangeLogs { get; }
 }
