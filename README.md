@@ -18,8 +18,10 @@ duplication and improving maintainability.
 	- Introduced `N2.Core.Models` namespace for response models and utilities.
 	- Introduced `N2.Core.Dms` namespace for document management services abstractions.
 	- Added initial documentation for each namespace and its components.
-- **2025-05-28** Version 1.3.0 : Breaking changes due to namespace restructuring.
+- **2025-05-28** Version 1.3.1 : Breaking changes due to namespace restructuring.
 	- Added a unit test project with some initial tests.
 	- Rename `N2.Core.Models` to `N2.Core.Commands` and extended command handler abstractions and base classes for command handling.
 	- Extended Entity namespace with additional interfaces for database context management.
 	- Extended Identity namespace with additional user and role management interfaces.
+	- Add exception definitions for common error scenarios.
+	- Rename 'ITextService' to 'ITranslator' to better reflect its purpose.
