@@ -22,6 +22,12 @@ public class TokenResponse : CommandResponse<Token>
         Status = Commands.ResponseStatus.Success;
     }
 
+    public TokenResponse(Token value, ResponseStatus status)
+    {
+        base.Value = value;
+        base.Status = status;
+    }
+
     public static TokenResponse Failed(ResponseStatus status, string message)
     {
         return new TokenResponse
