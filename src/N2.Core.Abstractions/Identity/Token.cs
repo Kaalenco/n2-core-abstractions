@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace N2.Core.Identity;
@@ -70,6 +71,16 @@ public class Token
     /// <returns></returns>
     public string Serialize()
     {
-        return System.Text.Json.JsonSerializer.Serialize(this);
+        return JsonSerializer.Serialize(this);
+    }
+
+    /// <summary>
+    /// Deserializes a JSON string representation to a Token object.
+    /// </summary>
+    /// <param name="json"></param>
+    /// <returns></returns>
+    public static Token Deserialize(string json)
+    {
+        return JsonSerializer.Deserialize<Token>(json) ?? new Token();
     }
 }
