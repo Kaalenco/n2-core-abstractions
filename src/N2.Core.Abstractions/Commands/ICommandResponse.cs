@@ -6,13 +6,13 @@ namespace N2.Core.Commands;
 public interface ICommandResponse
 {
     /// <summary>
-    /// Gets the handle. This handle should be the same as the
-    /// handle of the command that initiated this result
+    /// Gets the handle. This handle should be the same as the handle of the command that initiated
+    /// this result
     /// </summary>
     string? Handle { get; }
 
     /// <summary>
-    /// The result <seealso cref="ResponseStatus"/>.
+    /// The result <seealso cref="ResponseStatus" />.
     /// </summary>
     ResponseStatus Status { get; }
 
@@ -20,6 +20,11 @@ public interface ICommandResponse
     /// Gets the optional response message.
     /// </summary>
     string? Message { get; }
+
+    /// <summary>
+    /// Initializes the command response with a status, optional message and handle.
+    /// </summary>
+    ICommandResponse CreateNew(ResponseStatus status, string? message = null, string? handle = null);
 }
 
 /// <summary>

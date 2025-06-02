@@ -39,6 +39,12 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
         Message = message;
     }
 
+    public RequestResult(ResponseStatus result, string message) : this()
+    {
+        Status = result;
+        Message = message;
+    }
+
     public RequestResult(ResponseStatus result, string message, string handle) : this()
     {
         Status = result;
@@ -120,5 +126,14 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
     public override int GetHashCode()
     {
         return HashCode.Combine(Status, Message);
+    }
+
+    public ICommandResponse CreateNew(ResponseStatus status, string? message = null, string? handle = null)
+    {
+        if (string.IsNullOrEmpty(handle))
+        {
+            return new RequestResult(status, message ?? ToString());
+        }
+        return new RequestResult(status, message ?? ToString());
     }
 }

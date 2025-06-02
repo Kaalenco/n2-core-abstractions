@@ -96,6 +96,18 @@ public abstract class CommandResponse : ICommandResponse
     {
         return ToInt32(this);
     }
+
+    public ICommandResponse CreateNew(ResponseStatus status, string? message = null, string? handle = null)
+    {
+        if (Activator.CreateInstance(GetType()) is CommandResponse response)
+        {
+            response.Status = status;
+            response.Message = message;
+            response.Handle = handle;
+            return response;
+        }
+        throw new InvalidOperationException($"Cannot create instance of {GetType().FullName}.");
+    }
 }
 
 /// <summary>

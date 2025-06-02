@@ -6,7 +6,6 @@ using N2.Core.Commands;
 
 namespace N2.Core.Abstractions.UnitTests.Commands;
 
-
 /// <summary>
 /// The command request tests.
 /// </summary>
@@ -18,7 +17,6 @@ public class CommandRequestTests
     /// </summary>
     private sealed class TestCommandRequest : CommandRequest
     {
-
     }
 
     /// <summary>
@@ -48,9 +46,12 @@ public class CommandRequestTests
     /// <summary>
     /// Validate deserialization.
     /// </summary>
-    /// <param name="source"></param>
-    /// <param name="expectHandle"></param>
-    /// <param name="expectValidate"></param>
+    /// <param name="source">
+    /// </param>
+    /// <param name="expectHandle">
+    /// </param>
+    /// <param name="expectValidate">
+    /// </param>
     [DataTestMethod]
     [DataRow("{\"DoNotProcess\":\"F\"}", null, false)]
     [DataRow("{\"DoNotProcess\":\"T\"}", null, true)]
