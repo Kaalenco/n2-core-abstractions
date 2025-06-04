@@ -125,7 +125,17 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
 
     public override int GetHashCode()
     {
+#if NETSTANDARD2_1_OR_GREATER
         return HashCode.Combine(Status, Message);
+#else
+        unchecked
+        {
+            int hash = 17;
+            hash = hash * 23 + Status.GetHashCode();
+            hash = hash * 23 + (Message?.GetHashCode() ?? 0);
+            return hash;
+        }
+#endif
     }
 
     public ICommandResponse CreateNew(ResponseStatus status, string? message = null, string? handle = null)

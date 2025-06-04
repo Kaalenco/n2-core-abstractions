@@ -33,7 +33,23 @@ public class IntResponse : CommandResponse, ICommandResponse<int>
         return true;
     }
 
-    public override int GetHashCode() => HashCode.Combine(Status.GetHashCode(), Value.GetHashCode());
+    public override int GetHashCode()
+    {
+#if NETSTANDARD2_1_OR_GREATER
+        return HashCode.Combine(Status.GetHashCode(), Value.GetHashCode());
+#else
+        unchecked
+        {
+        // Use unchecked to avoid overflow exceptions
+        // use prime numbers to reduce collisions
+        // 17	19	23	29	31	37	41	43	47	53	59	61	67	71
+            int hash = 17; // use prime numbers
+            hash = hash * 19 + Status.GetHashCode();
+            hash = hash * 23 + Value.GetHashCode();
+            return hash;
+        }
+#endif
+    }
 
     public int Value { get; }
 }

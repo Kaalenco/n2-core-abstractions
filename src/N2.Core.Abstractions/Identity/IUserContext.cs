@@ -21,7 +21,7 @@ public interface IUserContext
     bool CanPublish();
     bool CanModifyRights();
     bool CanDesign();
-    bool IsAdmin() => CurrentRoles().Any(m => m == SystemRoles.Admin || m == SystemRoles.SuperAdmin);
+    bool IsAdmin();
 
     /// <summary>
     /// The primary partition key for the user. The partition

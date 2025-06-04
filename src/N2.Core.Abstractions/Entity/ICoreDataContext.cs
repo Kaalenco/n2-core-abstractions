@@ -27,7 +27,7 @@ public interface ICoreDataContext : IDisposable
 
     void AddRecord<T>(T model) where T : class;
 
-    Task<(int resultCode, string message)> DeleteAsync<T>(Guid publicId) where T : class;
+    Task<(ResponseStatus status, string message)> DeleteAsync<T>(Guid publicId) where T : class;
 
     Task<T?> FindRecordAsync<T>(Guid publicId) where T : class;
 

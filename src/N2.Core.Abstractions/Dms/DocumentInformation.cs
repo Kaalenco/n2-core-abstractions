@@ -58,7 +58,7 @@ public class DocumentInformation
     /// <summary>
     /// The date and time the document was created, in UTC.
     /// </summary>
-    public DateTime Created { get; set; } = DateTime.UnixEpoch;
+    public DateTime Created { get; set; } = CommonExtensions.UnixEpoch();
 
     /// <summary>
     /// The unique identifier of the user or process that created the document.

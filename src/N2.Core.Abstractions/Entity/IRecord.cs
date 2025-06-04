@@ -1,19 +1,24 @@
 namespace N2.Core.Entity;
 
+/// <summary>
+/// A record interface that defines the basic properties of a database record. This interface is used in
+/// methods that require a database id, such as the data layer methods for retrieving, updating, or deleting records.
+/// </summary>
 public interface IDbRecord : IRecord
 {
     /// <summary>
-    /// Gets or sets the id.
+    /// Gets or sets the database id.
     /// </summary>
     int Id { get; set; }
 }
 
 /// <summary>
-/// The record.
+/// A record interface that defines the basic properties of a record. This interface is used to
+/// transfer data between the data layer and the business layer. It does not contain fields
+/// that are specific to the data layer, such as the database id or the database name.
 /// </summary>
 public interface IRecord
 {
-
     /// <summary>
     /// Gets or sets the reference.
     /// </summary>

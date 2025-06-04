@@ -25,3 +25,5 @@ duplication and improving maintainability.
 	- Extended Identity namespace with additional user and role management interfaces.
 	- Add exception definitions for common error scenarios.
 	- Rename 'ITextService' to 'ITranslator' to better reflect its purpose.
+- **2025-06-03** Version 1.3.4 : Updates and fixes, documentation
+- **2025-06-04** Version 1.3.5 : Added support for NetStandard 2.0
