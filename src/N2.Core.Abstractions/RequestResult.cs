@@ -36,7 +36,7 @@ public static class RequestResultExtensions
             return defaultMessage;
         }
 
-        string fallbackMessage = requestResult.ToString();
+        string? fallbackMessage = requestResult.ToString();
 
         return !string.IsNullOrEmpty(fallbackMessage) ? fallbackMessage : "No message provided.";
     }
