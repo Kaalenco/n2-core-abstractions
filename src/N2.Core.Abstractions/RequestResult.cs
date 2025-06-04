@@ -8,10 +8,37 @@ public static class RequestResultExtensions
 {
     public static RequestResult WithHandle(RequestResult requestResult, string handle)
     {
+        string? message = requestResult.Message;
+        if (string.IsNullOrEmpty(message))
+        {
+            message = requestResult.ToString();
+            if (string.IsNullOrEmpty(message))
+            {
+                message = "No message provided.";
+            }
+        }
+
         return new RequestResult(
             requestResult.Status,
-            requestResult.Message ?? requestResult.ToString(),
+            requestResult.MessageOrDefault(),
             handle);
+    }
+
+    public static string MessageOrDefault(this RequestResult requestResult, string defaultMessage = "No message provided.")
+    {
+        if (!string.IsNullOrEmpty(requestResult.Message))
+        {
+            return requestResult.Message!;
+        }
+
+        if (!string.IsNullOrEmpty(defaultMessage))
+        {
+            return defaultMessage;
+        }
+
+        string fallbackMessage = requestResult.ToString();
+
+        return !string.IsNullOrEmpty(fallbackMessage) ? fallbackMessage : "No message provided.";
     }
 }
 
@@ -70,20 +97,25 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
     public int Code => (int)Status;
 
     public static RequestResult Accepted() => AcceptedResult;
+
     public static RequestResult Accepted(string message) => new(AcceptedCode, message);
 
     public static RequestResult BadRequest() => BadRequestResult;
 
     public static RequestResult NotFound() => NotFoundResult;
+
     public static RequestResult NotFound(string message) => new(NotFoundCode, message);
 
     public static RequestResult Unauthorized() => UnauthorizedResult;
+
     public static RequestResult Unauthorized(string message) => new(UnauthorizedCode, message);
 
     public static RequestResult Ok() => OkResult;
+
     public static RequestResult Ok(string message) => new(OkCode, message);
 
     public static RequestResult Unexpected() => UnexpectedResult;
+
     public static RequestResult Unexpected(string message) => new(UnexpectedCode, message);
 
     public static RequestResult TimeOut() => TimeOutResult;
@@ -140,10 +172,23 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
 
     public ICommandResponse CreateNew(ResponseStatus status, string? message = null, string? handle = null)
     {
+        string outputMessage = string.Empty;
+        if (string.IsNullOrEmpty(message))
+        {
+            message = this.ToString();
+            if (string.IsNullOrEmpty(message))
+            {
+                outputMessage = "No message provided.";
+            }
+        }
+        else
+        {
+            outputMessage = message!;
+        }
         if (string.IsNullOrEmpty(handle))
         {
-            return new RequestResult(status, message ?? ToString());
+            return new RequestResult(status, outputMessage);
         }
-        return new RequestResult(status, message ?? ToString());
+        return new RequestResult(status, outputMessage);
     }
 }
