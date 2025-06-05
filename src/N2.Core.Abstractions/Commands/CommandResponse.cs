@@ -20,42 +20,42 @@ public abstract class CommandResponse : ICommandResponse
         return this;
     }
 
-    public CommandResponse()
+    protected CommandResponse()
     {
         Status = ResponseStatus.Success;
         Message = null;
         Handle = null;
     }
 
-    public CommandResponse(int responseStatus, string message)
+    protected CommandResponse(int responseStatus, string message)
     {
         Status = (ResponseStatus)responseStatus;
         Message = message;
         Handle = null;
     }
 
-    public CommandResponse(int responseStatus, string message, string handle)
+    protected CommandResponse(int responseStatus, string message, string handle)
     {
         Status = (ResponseStatus)responseStatus;
         Message = message;
         Handle = handle;
     }
 
-    public CommandResponse(ResponseStatus responseStatus, string message, string handle)
+    protected CommandResponse(ResponseStatus responseStatus, string message, string handle)
     {
         Status = responseStatus;
         Message = message;
         Handle = handle;
     }
 
-    public CommandResponse(ResponseStatus responseStatus, string message)
+    protected CommandResponse(ResponseStatus responseStatus, string message)
     {
         Status = responseStatus;
         Message = message;
         Handle = null;
     }
 
-    public CommandResponse(int responseStatus)
+    protected CommandResponse(int responseStatus)
     {
         Status = (ResponseStatus)responseStatus;
         Message = null;

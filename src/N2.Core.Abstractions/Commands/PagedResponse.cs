@@ -64,10 +64,14 @@ public class PagedResponse<T> : CommandResponse, IPagedResponse<T>
         TotalPages = (count + ipp) / ipp;
         ItemsPerPage = ipp;
         TotalItemCount = count;
-        foreach (T? item in items)
+        if (items != null)
         {
-            Items.Add(item);
+            foreach (T? item in items)
+            {
+                Items.Add(item);
+            }
         }
+
         Status = ResponseStatus.Success;
     }
 
@@ -84,9 +88,12 @@ public class PagedResponse<T> : CommandResponse, IPagedResponse<T>
     /// <param name="items">Initialize the items list.</param>
     public PagedResponse(IEnumerable<T> items)
     {
-        foreach (T? item in items)
+        if (items != null)
         {
-            Items.Add(item);
+            foreach (T? item in items)
+            {
+                Items.Add(item);
+            }
         }
         Page = 1;
         TotalPages = 1;

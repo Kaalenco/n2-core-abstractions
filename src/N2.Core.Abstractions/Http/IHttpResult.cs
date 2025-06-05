@@ -44,7 +44,14 @@ public interface IHttpResult
     /// A string containing a tag that can be used for audit tracking or
     /// for a client to relate responses to a call.
     /// </summary>
+    [Obsolete("Use AuditTag instead.This will be removed in a future version.")]
     string? Etag { get; }
+
+    /// <summary>
+    /// A string containing a tag that can be used for audit tracking or
+    /// for a client to relate responses to a call.
+    /// </summary>
+    string? AuditTag { get; }
 
     /// <summary>
     /// A reference that could be used to reference a created or modified object

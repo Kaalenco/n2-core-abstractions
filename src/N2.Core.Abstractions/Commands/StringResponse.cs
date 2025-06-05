@@ -42,6 +42,9 @@ public class StringResponse : CommandResponse, ICommandResponse<string>
 #if NETSTANDARD2_1_OR_GREATER
         return HashCode.Combine(Status.GetHashCode(), Value.GetHashCode(StringComparison.Ordinal));
 #else
+
+#pragma warning disable CA1307 // For GetHashCode, there is no stringcomparison for netstandard 2.0
+
         unchecked
         {
         // Use unchecked to avoid overflow exceptions
@@ -52,6 +55,9 @@ public class StringResponse : CommandResponse, ICommandResponse<string>
             hash = hash * 23 + Value.GetHashCode();
             return hash;
         }
+
+#pragma warning restore CA1307 // For GetHashCode, there is no stringcomparison for netstandard 2.0
+
 #endif
     }
 

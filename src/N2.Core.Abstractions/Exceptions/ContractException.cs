@@ -23,4 +23,16 @@ public class ContractException : N2CoreException
     public ContractException(string message) : base(ResponseStatus.NotAcceptable, message)
     {
     }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ContractException" /> class.
+    /// </summary>
+    /// <param name="message">
+    /// The message.
+    /// </param>
+    /// <param name="innerException">
+    /// </param>
+    public ContractException(string message, Exception innerException) : base(ResponseStatus.NotAcceptable, message, innerException)
+    {
+    }
 }

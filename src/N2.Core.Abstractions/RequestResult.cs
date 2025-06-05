@@ -160,6 +160,9 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
 #if NETSTANDARD2_1_OR_GREATER
         return HashCode.Combine(Status, Message);
 #else
+
+#pragma warning disable CA1307 // For GetHashCode, there is no stringcomparison for netstandard 2.0
+
         unchecked
         {
             int hash = 17;
@@ -167,6 +170,9 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
             hash = hash * 23 + (Message?.GetHashCode() ?? 0);
             return hash;
         }
+
+#pragma warning restore CA1307
+
 #endif
     }
 

@@ -1,5 +1,7 @@
 namespace N2.Core.Dms;
 
+#pragma warning disable CA2227 // Collections should be read only
+
 /// <summary>
 /// The document information for external use (DTO).
 /// </summary>
