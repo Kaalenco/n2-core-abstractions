@@ -9,7 +9,7 @@ public interface ICommandResponse
     /// Gets the handle. This handle should be the same as the handle of the command that initiated
     /// this result
     /// </summary>
-    string? Handle { get; }
+    TrackingId? Handle { get; }
 
     /// <summary>
     /// The result <seealso cref="ResponseStatus" />.
@@ -22,9 +22,14 @@ public interface ICommandResponse
     string? Message { get; }
 
     /// <summary>
+    /// Gets the execution time in milliseconds for the command response.
+    /// </summary>
+    long? ExecutionTime { get; }
+
+    /// <summary>
     /// Initializes the command response with a status, optional message and handle.
     /// </summary>
-    ICommandResponse CreateNew(ResponseStatus status, string? message = null, string? handle = null);
+    ICommandResponse CreateNew(ResponseStatus status, string? message = null, Guid? handle = null, long? executionTime = null);
 }
 
 /// <summary>

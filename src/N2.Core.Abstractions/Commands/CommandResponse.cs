@@ -12,11 +12,22 @@ public abstract class CommandResponse : ICommandResponse
     public string? Message { get; protected set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Handle { get; protected set; }
+    public TrackingId? Handle { get; protected set; }
 
-    public CommandResponse WithHandle(string handle)
+    [JsonIgnore(Condition =
+    JsonIgnoreCondition.WhenWritingNull |
+    JsonIgnoreCondition.WhenWritingDefault)]
+    public long? ExecutionTime { get; protected set; }
+
+    public CommandResponse WithHandle(Guid handle)
     {
         Handle = handle;
+        return this;
+    }
+
+    public CommandResponse WithExecutionTime(long executionTime)
+    {
+        ExecutionTime = executionTime;
         return this;
     }
 
@@ -34,14 +45,14 @@ public abstract class CommandResponse : ICommandResponse
         Handle = null;
     }
 
-    protected CommandResponse(int responseStatus, string message, string handle)
+    protected CommandResponse(int responseStatus, string message, Guid handle)
     {
         Status = (ResponseStatus)responseStatus;
         Message = message;
         Handle = handle;
     }
 
-    protected CommandResponse(ResponseStatus responseStatus, string message, string handle)
+    protected CommandResponse(ResponseStatus responseStatus, string message, Guid handle)
     {
         Status = responseStatus;
         Message = message;
@@ -97,13 +108,14 @@ public abstract class CommandResponse : ICommandResponse
         return ToInt32(this);
     }
 
-    public ICommandResponse CreateNew(ResponseStatus status, string? message = null, string? handle = null)
+    public ICommandResponse CreateNew(ResponseStatus status, string? message = null, Guid? handle = null, long? executionTime = null)
     {
         if (Activator.CreateInstance(GetType()) is CommandResponse response)
         {
             response.Status = status;
             response.Message = message;
             response.Handle = handle;
+            response.ExecutionTime = executionTime;
             return response;
         }
         throw new InvalidOperationException($"Cannot create instance of {GetType().FullName}.");

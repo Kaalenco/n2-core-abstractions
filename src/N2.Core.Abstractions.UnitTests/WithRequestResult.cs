@@ -8,11 +8,12 @@ public sealed class WithRequestResult
     [TestMethod]
     public void WithHandleShouldReturnNewRequestResult()
     {
+        Guid newHandle = Guid.NewGuid();
         RequestResult original = new(RequestResult.OkCode, "Original message");
-        RequestResult updated = RequestResultExtensions.WithHandle(original, "new-handle");
+        RequestResult updated = RequestResultExtensions.WithHandle(original, newHandle);
         Assert.AreEqual(original.Status, updated.Status);
         Assert.AreEqual(original.MessageOrDefault(), updated.MessageOrDefault());
-        Assert.AreEqual("new-handle", updated.Handle);
+        Assert.AreEqual(newHandle, updated.Handle);
     }
     [TestMethod]
     public void MessageOrDefaultShouldReturnDefaultMessageWhenEmpty()

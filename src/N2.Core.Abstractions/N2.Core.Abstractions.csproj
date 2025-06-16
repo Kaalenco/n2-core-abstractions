@@ -1,23 +1,33 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1;NET8.0;NET9.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>12</LangVersion>
-
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>N2 Core Abstractions</Title>
-    <Description>Interfaces and simple classes for generic use</Description>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <IncludeSymbols>False</IncludeSymbols>
-    <Version>1.3.0</Version>
-    <PackageVersion>1.3.7</PackageVersion>
+
+    <Title>N2 Core Abstractions</Title>
+    <Company>Kaalenco</Company>
+    <Copyright>(c) 2025 - rights reserved</Copyright>
+    <Authors>gjkaal</Authors>
+    <Description>Interfaces and simple classes for generic use.</Description>
+
+    <Product>N2.Core</Product>
+    <RootNamespace>N2.Core</RootNamespace>
+    <ProductName>N2 Core libraries</ProductName>
+
+    <Version>1.4.0</Version>
+    <ProductVersion>1.4.0</ProductVersion>
+    <PackageVersion>1.3.8-beta.0616a</PackageVersion>
+
+    <PackageId>N2.Core.Abstractions</PackageId>
+    <PackageType>Dependency</PackageType>
     <PackageLicenseExpression>AFL-3.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/kaalenco/n2-core-abstractions</PackageProjectUrl>
-    <PackageId>N2.Core.Abstractions</PackageId>
-    <Authors>gjkaal</Authors>
-    <PackageType>Dependency</PackageType>
-    <RootNamespace>N2.Core</RootNamespace>
+
   </PropertyGroup>
 
   <PropertyGroup>

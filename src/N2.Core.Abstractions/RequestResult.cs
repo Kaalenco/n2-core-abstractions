@@ -6,7 +6,7 @@ namespace N2.Core;
 
 public static class RequestResultExtensions
 {
-    public static RequestResult WithHandle(RequestResult requestResult, string handle)
+    public static RequestResult WithHandle(RequestResult requestResult, Guid handle)
     {
         string? message = requestResult.Message;
         if (string.IsNullOrEmpty(message))
@@ -72,7 +72,7 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
         Message = message;
     }
 
-    public RequestResult(ResponseStatus result, string message, string handle) : this()
+    public RequestResult(ResponseStatus result, string message, Guid handle) : this()
     {
         Status = result;
         Message = message;
@@ -91,7 +91,10 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
     public string? Message { get; } = null;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Handle { get; } = null;
+    public long? ExecutionTime { get; } = null;
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TrackingId? Handle { get; } = null;
 
     public ResponseStatus Status { get; } = (ResponseStatus)OkCode;
     public int Code => (int)Status;
@@ -166,8 +169,8 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
         unchecked
         {
             int hash = 17;
-            hash = hash * 23 + Status.GetHashCode();
-            hash = hash * 23 + (Message?.GetHashCode() ?? 0);
+            hash = (hash * 23) + Status.GetHashCode();
+            hash = (hash * 23) + (Message?.GetHashCode() ?? 0);
             return hash;
         }
 
@@ -176,7 +179,7 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
 #endif
     }
 
-    public ICommandResponse CreateNew(ResponseStatus status, string? message = null, string? handle = null)
+    public ICommandResponse CreateNew(ResponseStatus status, string? message = null, Guid? handle = null, long? executionTime = null)
     {
         string outputMessage = string.Empty;
         if (string.IsNullOrEmpty(message))
@@ -191,10 +194,14 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
         {
             outputMessage = message!;
         }
-        if (string.IsNullOrEmpty(handle))
+
+        if (handle is Guid handleGuid)
+        {
+            return new RequestResult(status, outputMessage, handleGuid);
+        }
+        else
         {
             return new RequestResult(status, outputMessage);
         }
-        return new RequestResult(status, outputMessage);
     }
 }

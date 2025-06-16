@@ -1,4 +1,4 @@
-﻿
+
 namespace N2.Core.Identity;
 
 public interface IUserAccess

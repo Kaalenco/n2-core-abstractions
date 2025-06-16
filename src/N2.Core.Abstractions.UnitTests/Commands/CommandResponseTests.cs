@@ -19,7 +19,7 @@ public class CommandResponseTests
 
         }
 
-        public TestCommandResponse(ResponseStatus status, string message, string handle)
+        public TestCommandResponse(ResponseStatus status, string message, Guid handle)
             : base(status, message, handle)
         {
         }
@@ -37,8 +37,10 @@ public class CommandResponseTests
     [TestMethod]
     public void CommandResponseCanInitializeNew()
     {
-        TestCommandResponse response = new(ResponseStatus.Success, "Test message", "test-handle");
-        ICommandResponse item = response.CreateNew(ResponseStatus.NoContent, "No content message", "new-handle");
+        Guid testHandle = Guid.NewGuid();
+        Guid newHandle = Guid.NewGuid();
+        TestCommandResponse response = new(ResponseStatus.Success, "Test message", testHandle);
+        ICommandResponse item = response.CreateNew(ResponseStatus.NoContent, "No content message", newHandle);
 
         Assert.IsNotNull(item);
         Assert.IsInstanceOfType<TestCommandResponse>(item);
