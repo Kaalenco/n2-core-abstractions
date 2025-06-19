@@ -3,7 +3,7 @@ namespace N2.Core.Commands;
 /// <summary>
 /// The command result.
 /// </summary>
-public interface ICommandResponse
+public interface ICommandResponse : ICloneable
 {
     /// <summary>
     /// Gets the handle. This handle should be the same as the handle of the command that initiated

@@ -16,20 +16,37 @@ public interface ICommandHandler
     int TimeoutInMilliSeconds { get; set; }
 
     /// <summary>
+    /// Indication that the commandhandler is currently active and should not be disposed or removed from the conductor.
+    /// Use this to indicate that the commandhandler is currently processing requests or waiting for responses.
+    /// </summary>
+    bool IsActive { get; }
+
+    /// <summary>
+    /// Indication that the commandhandler is enabled and can handle requests.
+    /// </summary>
+    bool IsEnabled { get; }
+
+    /// <summary>
+    /// Indication that the commandhandler is configured and can handle requests of a specific type.
+    /// </summary>
+    /// <param name="command">A command that will be evaluated.</param>
+    /// <returns>true if this command handler can handle the command.</returns>
+    bool CanHandle(ICommandRequest command);
+
+    /// <summary>
     /// Start the processing to handle the requests.
     /// </summary>
     /// <returns>
     /// A ResponseStatus.
     /// </returns>
-    ResponseStatus Invoke();
+    ResponseStatus Invoke(ICommandRequest command);
 }
 
 /// <summary>
-/// The command handler abstraction.
+/// A command handler abstraction without a return value.
 /// </summary>
-public interface ICommandHandler<TQ, TA> : ICommandHandler
-    where TQ : class, ICommandRequest
-    where TA : class, ICommandResponse, new()
+public interface ICommandHandler<TQ> : ICommandHandler
+     where TQ : ICommandRequest
 {
     /// <summary>
     /// Accepts the request for processing.
@@ -40,8 +57,16 @@ public interface ICommandHandler<TQ, TA> : ICommandHandler
     /// <returns>
     /// A ResponseStatus.
     /// </returns>
-    ResponseStatus Accept(TQ request);
+    ResponseStatus ExecuteCommand(TQ request);
+}
 
+/// <summary>
+/// A command handler abstraction with a return value.
+/// </summary>
+public interface ICommandHandler<TQ, TA> : ICommandHandler<TQ>
+     where TQ : ICommandRequest
+     where TA : class, ICommandResponse, new()
+{
     /// <summary>
     /// Find the next response.
     /// </summary>
@@ -67,9 +92,8 @@ public interface ICommandHandler<TQ, TA> : ICommandHandler
 /// <summary>
 /// The queued command handler abstraction.
 /// </summary>
-public interface IQueuedCommandHandler<TQ, TA> : ICommandHandler<TQ, TA>
-where TQ : class, ICommandRequest
-where TA : class, ICommandResponse, new()
+public interface IQueuedCommandHandler<TQ> : ICommandHandler<TQ>
+    where TQ : ICommandRequest
 {
     /// <summary>
     /// Cancels the request with the provided handle.

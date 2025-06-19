@@ -21,7 +21,7 @@
 
     <Version>1.4.0</Version>
     <ProductVersion>1.4.0</ProductVersion>
-    <PackageVersion>1.3.8-beta.0616a</PackageVersion>
+    <PackageVersion>1.4.0</PackageVersion>
 
     <PackageId>N2.Core.Abstractions</PackageId>
     <PackageType>Dependency</PackageType>

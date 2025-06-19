@@ -204,4 +204,9 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
             return new RequestResult(status, outputMessage);
         }
     }
+
+    public object Clone()
+    {
+        return new RequestResult(Status, Message ?? "No message provided.", Handle?.Value ?? Guid.Empty);
+    }
 }

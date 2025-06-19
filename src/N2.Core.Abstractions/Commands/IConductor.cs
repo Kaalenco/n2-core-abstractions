@@ -27,14 +27,14 @@ public interface IConductor
     /// </summary>
     /// <typeparam name="TCommand"></typeparam>
     /// <returns></returns>
-    public bool IsCommandAvailable<TCommand>() where TCommand : ICommandRequest;
+    bool IsCommandAvailable<TCommand>() where TCommand : ICommandRequest;
 
     /// <summary>
     /// Find command handler(s) and invoke the command.
     /// </summary>
     /// <typeparam name="TCommand"></typeparam>
     /// <param name="command"></param>
-    public void Invoke<TCommand>(TCommand command) where TCommand : ICommandRequest;
+    ResponseStatus Invoke<TCommand>(TCommand command) where TCommand : ICommandRequest;
 
     /// <summary>
     /// Check registered callback methods and return results.
@@ -57,5 +57,5 @@ public interface IConductor
 /// </summary>
 public interface ICallback : IDisposable
 {
-    string? Handle { get; }
+    Guid? Handle { get; }
 }

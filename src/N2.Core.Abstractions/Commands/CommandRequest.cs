@@ -8,6 +8,20 @@ namespace N2.Core.Commands;
 /// <seealso cref="ICommandRequest" />
 public abstract class CommandRequest : ICommandRequest
 {
+    protected CommandRequest()
+    {
+    }
+
+    protected CommandRequest(string handle)
+    {
+        Handle = handle;
+    }
+
+    protected CommandRequest(Guid handle)
+    {
+        Handle = handle.ToString();
+    }
+
     /// <summary>
     /// Gets or sets the handle.
     /// </summary>

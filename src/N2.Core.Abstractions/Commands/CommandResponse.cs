@@ -59,6 +59,22 @@ public abstract class CommandResponse : ICommandResponse
         Handle = handle;
     }
 
+    protected CommandResponse(int responseStatus, string message, Guid handle, long executionTime)
+    {
+        Status = (ResponseStatus)responseStatus;
+        Message = message;
+        Handle = handle;
+        ExecutionTime = executionTime;
+    }
+
+    protected CommandResponse(ResponseStatus responseStatus, string message, Guid handle, long executionTime)
+    {
+        Status = responseStatus;
+        Message = message;
+        Handle = handle;
+        ExecutionTime = executionTime;
+    }
+
     protected CommandResponse(ResponseStatus responseStatus, string message)
     {
         Status = responseStatus;
@@ -116,6 +132,19 @@ public abstract class CommandResponse : ICommandResponse
             response.Message = message;
             response.Handle = handle;
             response.ExecutionTime = executionTime;
+            return response;
+        }
+        throw new InvalidOperationException($"Cannot create instance of {GetType().FullName}.");
+    }
+
+    public object Clone()
+    {
+        if (Activator.CreateInstance(GetType()) is CommandResponse response)
+        {
+            response.Status = Status;
+            response.Message = Message;
+            response.Handle = Handle;
+            response.ExecutionTime = ExecutionTime;
             return response;
         }
         throw new InvalidOperationException($"Cannot create instance of {GetType().FullName}.");

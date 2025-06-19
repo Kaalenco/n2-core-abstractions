@@ -47,4 +47,18 @@ public class CommandResponseTests
         Assert.AreEqual(ResponseStatus.NoContent, item.Status);
         Assert.AreNotEqual(ResponseStatus.NoContent, response.Status);
     }
+
+    [TestMethod]
+    public void CommandResponseIsClonable()
+    {
+        Guid testHandle = Guid.NewGuid();
+        TestCommandResponse response = new(ResponseStatus.Success, "Test message", testHandle);
+        ICommandResponse clone = (ICommandResponse)response.Clone();
+        Assert.IsNotNull(clone);
+        Assert.IsInstanceOfType<TestCommandResponse>(clone);
+        Assert.AreEqual(response.Status, clone.Status);
+        Assert.AreEqual(response.Message, clone.Message);
+        Assert.AreEqual(response.Handle, clone.Handle);
+        Assert.AreEqual(response.ExecutionTime, clone.ExecutionTime);
+    }
 }
