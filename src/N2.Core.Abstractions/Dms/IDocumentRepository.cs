@@ -21,5 +21,5 @@ public interface IDocumentRepository
 
     Task<Document> FindDocumentAsync(Guid publicId, bool isDeleted, Guid createdBy);
 
-    IQueryable<Document> DocumentQuery { get; }
+    IAsyncEnumerable<Document> DocumentQuery { get; }
 }
