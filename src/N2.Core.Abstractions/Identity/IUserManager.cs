@@ -49,4 +49,23 @@ public interface IUserManager<TUser> : IDisposable
     Task<ICommandResponse> SetUserNameAsync(TUser user, string userName, CancellationToken token);
 
     Task<ICommandResponse> ValidateAsync(TUser user, string password, CancellationToken token);
+
+    Task<ICommandResponse> ValidateMultifactorAsync(TUser user, MultiFactorType mfaType, CancellationToken token);
+
+    Task<ICommandResponse<MultiFactorProperties>> SetMultifactorAsync(TUser user, MultiFactorType mfaType, string mfaToken, CancellationToken token);
+}
+
+public class MultiFactorProperties
+{
+    public MultiFactorType MultiFactorType { get; set; }
+    public byte[]? QrCode { get; set; }
+    public Uri? Uri { get; set; }
+}
+
+public enum MultiFactorType
+{
+    None = 0,
+    Totp = 1,
+    Email = 2,
+    Sms = 3,
 }
