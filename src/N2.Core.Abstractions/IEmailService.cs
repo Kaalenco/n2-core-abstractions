@@ -6,3 +6,8 @@ public interface IEmailService
     Task<int> SendEmailAsync(string senderAddress, string recipientAddress, string subject, string htmlContent, string plainTextContent);
     Task<int> SendEmailAsync(string recipientAddress, string subject, string htmlContent);
 }
+
+public interface ICryptoService
+{
+    
+}

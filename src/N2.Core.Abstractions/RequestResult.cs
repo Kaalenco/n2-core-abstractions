@@ -105,6 +105,8 @@ public readonly struct RequestResult : ICommandResponse, IEquatable<RequestResul
 
     public static RequestResult BadRequest() => BadRequestResult;
 
+    public static RequestResult BadRequest(string message) => new(BadRequestCode, message);
+
     public static RequestResult NotFound() => NotFoundResult;
 
     public static RequestResult NotFound(string message) => new(NotFoundCode, message);

@@ -50,7 +50,7 @@ public interface IUserManager<TUser> : IDisposable
 
     Task<ICommandResponse> ValidateAsync(TUser user, string password, CancellationToken token);
 
-    Task<ICommandResponse> ValidateMultifactorAsync(TUser user, MultiFactorType mfaType, CancellationToken token);
+    Task<ICommandResponse> ValidateMultifactorAsync(TUser user, string multifactorCode, CancellationToken token);
 
     Task<ICommandResponse<MultiFactorProperties>> SetMultifactorAsync(TUser user, MultiFactorType mfaType, string mfaToken, CancellationToken token);
 }
