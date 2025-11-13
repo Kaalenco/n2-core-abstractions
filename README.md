@@ -1,5 +1,8 @@
 # n2-core
 
+[![CodeQL](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/github-code-scanning/codeql)
+[![.NET Build and test](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/dotnet.yml)
+
 Basic functionality for any project. It contains abstractions and utilities that 
 are commonly used across different projects. This package was created after realizing
 that many projects were using similar abstractions and utilities, leading to 
