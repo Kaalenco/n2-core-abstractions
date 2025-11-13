@@ -31,7 +31,7 @@ public interface IUserManager<TUser> : IDisposable
     Task<ICommandResponse<TUser>> FindByIdAsync(Guid userId, CancellationToken token);
     Task<ICommandResponse<TUser>> FindByNameAsync(string userName, CancellationToken token);
 
-    Task<ICommandResponse<string>> GenerateEmailConfirmationTokenAsync(TUser user, CancellationToken token);
+    Task<ICommandResponse<string>> GenerateConfirmationTokenAsync(TUser user, CancellationToken token);
 
     Task<IListResponse<string>> GetRolesAsync(TUser user, CancellationToken token);
 
