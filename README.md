@@ -67,3 +67,6 @@ An interface over system-level services (currently time) so that code depending 
 	- Rename 'ITextService' to 'ITranslator' to better reflect its purpose.
 - **2025-06-03** Version 1.3.4 : Updates and fixes, documentation
 - **2025-06-04** Version 1.3.5 : Added support for NetStandard 2.0
+- **2026-03-11** Version 1.5.0 : Added support for Net10
+	- Added support for .NET 10.0 and dropped support for .NET 9.0.
+	- Updated documentation to reflect new version support and any breaking changes.
