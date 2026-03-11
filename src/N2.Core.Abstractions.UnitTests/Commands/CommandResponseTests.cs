@@ -23,6 +23,11 @@ public class CommandResponseTests
             : base(status, message, handle)
         {
         }
+
+        public TestCommandResponse(ResponseStatus status, string message)
+            : base(status, message)
+        {
+        }
     }
 
     [TestMethod]
@@ -60,5 +65,94 @@ public class CommandResponseTests
         Assert.AreEqual(response.Message, clone.Message);
         Assert.AreEqual(response.Handle, clone.Handle);
         Assert.AreEqual(response.ExecutionTime, clone.ExecutionTime);
+    }
+
+    [TestMethod]
+    public void SuccessIsTrueForStatusAtOrBelow300()
+    {
+        TestCommandResponse ok = new(ResponseStatus.Success, "ok", Guid.Empty);
+        Assert.IsTrue(ok.Success);
+
+        // NotAccepted = 300, which is <= 300 so Success is still true
+        TestCommandResponse notAccepted = new(ResponseStatus.NotAccepted, "not accepted");
+        Assert.IsTrue(notAccepted.Success);
+    }
+
+    [TestMethod]
+    public void SuccessIsFalseForStatusAbove300()
+    {
+        TestCommandResponse badRequest = new(ResponseStatus.BadRequest, "bad");
+        Assert.IsFalse(badRequest.Success);
+
+        TestCommandResponse serverError = new(ResponseStatus.ServerError, "error");
+        Assert.IsFalse(serverError.Success);
+    }
+
+    [TestMethod]
+    public void WithHandleSetsHandleAndReturnsSelf()
+    {
+        Guid handle = Guid.NewGuid();
+        TestCommandResponse response = new();
+        CommandResponse result = response.WithHandle(handle);
+        Assert.AreSame(response, result);
+        Assert.AreEqual(handle, response.Handle?.Value);
+    }
+
+    [TestMethod]
+    public void WithExecutionTimeSetsTimeAndReturnsSelf()
+    {
+        TestCommandResponse response = new();
+        CommandResponse result = response.WithExecutionTime(42L);
+        Assert.AreSame(response, result);
+        Assert.AreEqual(42L, response.ExecutionTime);
+    }
+
+    [TestMethod]
+    public void ToStringFormatsStatusAndMessage()
+    {
+        TestCommandResponse response = new(ResponseStatus.Success, "all good");
+        string text = response.ToString();
+        Assert.IsTrue(text.Contains("Success", StringComparison.Ordinal));
+        Assert.IsTrue(text.Contains("all good", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public void ImplicitIntConversionReturnsStatusCode()
+    {
+        TestCommandResponse response = new(ResponseStatus.Success, "ok", Guid.Empty);
+        int code = response;
+        Assert.AreEqual((int)ResponseStatus.Success, code);
+    }
+
+    [TestMethod]
+    public void ToIntReturnsStatusCode()
+    {
+        TestCommandResponse response = new(ResponseStatus.Success, "ok", Guid.Empty);
+        Assert.AreEqual((int)ResponseStatus.Success, response.ToInt());
+    }
+
+    [TestMethod]
+    public void EqualsReturnsTrueForSameStatusAndHandle()
+    {
+        Guid handle = Guid.NewGuid();
+        TestCommandResponse a = new(ResponseStatus.Success, "msg", handle);
+        TestCommandResponse b = new(ResponseStatus.Success, "different msg", handle);
+        Assert.IsTrue(a.Equals(b));
+    }
+
+    [TestMethod]
+    public void EqualsReturnsFalseForDifferentStatus()
+    {
+        Guid handle = Guid.NewGuid();
+        TestCommandResponse a = new(ResponseStatus.Success, "msg", handle);
+        TestCommandResponse b = new(ResponseStatus.NotFound, "msg", handle);
+        Assert.IsFalse(a.Equals(b));
+    }
+
+    [TestMethod]
+    public void EqualsReturnsFalseForNull()
+    {
+        TestCommandResponse response = new();
+        Assert.IsFalse(response.Equals(null));
     }
 }
