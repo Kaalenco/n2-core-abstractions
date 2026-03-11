@@ -11,7 +11,7 @@
 
     <Title>N2 Core Abstractions</Title>
     <Company>Kaalenco</Company>
-    <Copyright>(c) 2025 - rights reserved</Copyright>
+    <Copyright>(c) 2026 - rights reserved</Copyright>
     <Authors>gjkaal</Authors>
     <Description>Interfaces and simple classes for generic use.</Description>
 
@@ -19,9 +19,9 @@
     <RootNamespace>N2.Core</RootNamespace>
     <ProductName>N2 Core libraries</ProductName>
 
-    <Version>1.4.5</Version>
-    <ProductVersion>1.4.5</ProductVersion>
-    <PackageVersion>1.4.5</PackageVersion>
+    <Version>1.5.0</Version>
+    <ProductVersion>1.5.0</ProductVersion>
+    <PackageVersion>1.5.0</PackageVersion>
 
     <PackageId>N2.Core.Abstractions</PackageId>
     <PackageType>Dependency</PackageType>
