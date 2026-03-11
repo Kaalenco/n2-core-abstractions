@@ -33,6 +33,6 @@ public class WithToken
     {
         string json = "{\"access_token\": \"user:password\"}";
 
-        Assert.ThrowsException<JsonException>(() => Token.Deserialize(json));
+        Assert.Throws<JsonException>(() => Token.Deserialize(json));
     }
 }

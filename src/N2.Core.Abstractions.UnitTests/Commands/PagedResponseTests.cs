@@ -23,7 +23,7 @@ public class PagedResponseTests
     /// <param name="expectCount">The expected count.</param>
     /// <param name="expectPage">The expected page.</param>
     /// <param name="expectIpp">The expected ipp.</param>
-    [DataTestMethod()]
+    [TestMethod()]
     [DataRow(21, 1, 10, 3, 21, 1, 10)]
     [DataRow(21, -1, 10, 3, 21, 1, 10)]
     [DataRow(21, -1, 0, 1, 21, 1, 25)]

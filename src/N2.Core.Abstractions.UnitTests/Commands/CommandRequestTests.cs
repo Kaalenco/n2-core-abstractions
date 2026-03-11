@@ -52,7 +52,7 @@ public class CommandRequestTests
     /// </param>
     /// <param name="expectValidate">
     /// </param>
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("{\"DoNotProcess\":\"F\"}", null, false)]
     [DataRow("{\"DoNotProcess\":\"T\"}", null, true)]
     [DataRow("{\"Handle\":\"\", \"DoNotProcess\":\"T\"}", "", true)]
