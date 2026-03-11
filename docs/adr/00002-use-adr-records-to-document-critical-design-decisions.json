@@ -1,0 +1,9 @@
+{
+  "TemplateType": "Ad",
+  "Context": "",
+  "References": {},
+  "DateTime": "2026-03-11T00:00:00+01:00",
+  "FileName": "00002-use-adr-records-to-document-critical-design-decisions",
+  "RecordId": 2,
+  "Title": "Use ADR records to document critical design decisions"
+}
