@@ -2,7 +2,7 @@
 #
 # Deletes old workflow runs from a GitHub repository:
 #   - Failed runs older than RETENTION_DAYS days
-#   - All codeql.yml runs older than RETENTION_DAYS days
+#   - All runs whose name contains "CodeQL" older than RETENTION_DAYS days (covers both the advanced workflow and GitHub's default CodeQL setup)
 #
 # Environment variables:
 #   REPO            GitHub repository in "owner/repo" format (required)
@@ -36,9 +36,9 @@ echo "Cleaning up runs older than $RETENTION_DAYS days ($CUTOFF) in $REPO"
 TOTAL=$(gh api --paginate "/repos/$REPO/actions/runs?per_page=100" --jq '.workflow_runs[].id' | wc -l)
 echo "Total runs found: $TOTAL"
 
-# Delete failed runs older than RETENTION_DAYS, and ALL codeql.yml runs older than RETENTION_DAYS
+# Delete failed runs older than RETENTION_DAYS, and ALL CodeQL runs older than RETENTION_DAYS
 gh api --paginate "/repos/$REPO/actions/runs?per_page=100" \
-  --jq '.workflow_runs[] | select(.created_at < "'"$CUTOFF"'") | select(.conclusion == "failure" or .path == ".github/workflows/codeql.yml") | .id' \
+  --jq '.workflow_runs[] | select(.created_at < "'"$CUTOFF"'") | select(.conclusion == "failure" or (.name | test("CodeQL"; "i"))) | .id' \
 | while read -r RUN_ID; do
     echo "Deleting run $RUN_ID"
     gh api -X DELETE "/repos/$REPO/actions/runs/$RUN_ID" >/dev/null
