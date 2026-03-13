@@ -1,8 +1,8 @@
 # delete-workflow-runs.sh
 #
 # Deletes old workflow runs from a GitHub repository:
-#   - Failed runs older than RETENTION_DAYS days
-#   - All runs whose name contains "CodeQL" older than RETENTION_DAYS days (covers both the advanced workflow and GitHub's default CodeQL setup)
+#   - All runs older than RETENTION_DAYS days
+#   - Except: successful dotnet.yml runs (kept as a release audit trail)
 #
 # Environment variables:
 #   REPO            GitHub repository in "owner/repo" format (required)
@@ -36,9 +36,10 @@ echo "Cleaning up runs older than $RETENTION_DAYS days ($CUTOFF) in $REPO"
 TOTAL=$(gh api --paginate "/repos/$REPO/actions/runs?per_page=100" --jq '.workflow_runs[].id' | wc -l)
 echo "Total runs found: $TOTAL"
 
-# Delete failed runs older than RETENTION_DAYS, and ALL CodeQL runs older than RETENTION_DAYS
+# Delete all runs older than RETENTION_DAYS, except successful dotnet.yml runs
+# (successful dotnet runs indicate a published NuGet package and are kept as a release audit trail)
 gh api --paginate "/repos/$REPO/actions/runs?per_page=100" \
-  --jq '.workflow_runs[] | select(.created_at < "'"$CUTOFF"'") | select(.conclusion == "failure" or (.name | test("CodeQL"; "i"))) | .id' \
+  --jq '.workflow_runs[] | select(.created_at < "'"$CUTOFF"'") | select((.path == ".github/workflows/dotnet.yml" and .conclusion == "success") | not) | .id' \
 | while read -r RUN_ID; do
     echo "Deleting run $RUN_ID"
     gh api -X DELETE "/repos/$REPO/actions/runs/$RUN_ID" >/dev/null
