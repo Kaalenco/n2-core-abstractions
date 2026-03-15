@@ -1,7 +1,8 @@
 # n2-core
 
-[![CodeQL](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/github-code-scanning/codeql)
+[![CodeQL Advanced](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/codeql.yml/badge.svg)](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/codeql.yml)
 [![.NET Build and test](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/dotnet.yml)
+[![NuGet](https://img.shields.io/nuget/v/N2.Core.Abstractions.svg)](https://www.nuget.org/packages/N2.Core.Abstractions/)
 
 `N2.Core.Abstractions` is a shared library of interfaces, abstractions, and lightweight models for .NET projects. It was created to eliminate the pattern of each project re-implementing the same foundational contracts — response envelopes, database context wrappers, user identity, command dispatching — in slightly different ways. By defining these once in a single package, projects can depend on a common vocabulary instead of duplicating it.
 
