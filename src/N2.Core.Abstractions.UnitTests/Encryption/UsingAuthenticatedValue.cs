@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 
 using N2.Core.Abstractions.Encryption;
@@ -191,6 +192,139 @@ public class UsingAuthenticatedValue
         var token = new AuthenticatedValue([1, 2, 3], PastExpiry).ToTokenString(Secret);
 
         Assert.Throws<CryptographicException>(() => AuthenticatedValue.FromTokenString(token, Secret, Now));
+    }
+
+    // -------------------------------------------------------------------------
+    // Expiry boundary
+    // -------------------------------------------------------------------------
+
+    [TestMethod]
+    public void ExpiryBoundary_TokenAtExactExpiryMoment_IsValid()
+    {
+        // The check is expiration < time.UtcNow, so equality means the token is still valid.
+        var expiry = new DateTime(2030, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        var time   = new FakeTimeSystem { UtcNow = expiry };
+        var token  = new AuthenticatedValue([1], expiry).ToTokenString(Secret);
+
+        var result = AuthenticatedValue.FromTokenString(token, Secret, time);
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void ExpiryBoundary_TokenOneTickBeforeExpiry_IsValid()
+    {
+        var expiry = new DateTime(2030, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        var time   = new FakeTimeSystem { UtcNow = expiry.AddTicks(-1) };
+        var token  = new AuthenticatedValue([1], expiry).ToTokenString(Secret);
+
+        var result = AuthenticatedValue.FromTokenString(token, Secret, time);
+        Assert.IsNotNull(result);
+    }
+
+    [TestMethod]
+    public void ExpiryBoundary_TokenOneTickPastExpiry_Throws()
+    {
+        var expiry = new DateTime(2030, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        var time   = new FakeTimeSystem { UtcNow = expiry.AddTicks(1) };
+        var token  = new AuthenticatedValue([1], expiry).ToTokenString(Secret);
+
+        Assert.Throws<CryptographicException>(() =>
+            AuthenticatedValue.FromTokenString(token, Secret, time));
+    }
+
+    // -------------------------------------------------------------------------
+    // Timing-attack resistance
+    // -------------------------------------------------------------------------
+
+    [TestMethod]
+    public void TimingAttack_MacMismatchAtFirstByte_ThrowsCryptographicException()
+    {
+        // A non-constant-time comparison might short-circuit here and return early.
+        var tampered = FlipMacByte(0);
+        Assert.Throws<CryptographicException>(() =>
+            AuthenticatedValue.FromTokenString(tampered, Secret, Now));
+    }
+
+    [TestMethod]
+    public void TimingAttack_MacMismatchAtLastByte_ThrowsCryptographicException()
+    {
+        // A non-constant-time comparison would never reach the last byte if an earlier
+        // byte already differed, yet this must still fail.
+        var tampered = FlipMacByte(MacBytesLength - 1);
+        Assert.Throws<CryptographicException>(() =>
+            AuthenticatedValue.FromTokenString(tampered, Secret, Now));
+    }
+
+    [TestMethod]
+    public void TimingAttack_MacMismatchAtMiddleByte_ThrowsCryptographicException()
+    {
+        var tampered = FlipMacByte(MacBytesLength / 2);
+        Assert.Throws<CryptographicException>(() =>
+            AuthenticatedValue.FromTokenString(tampered, Secret, Now));
+    }
+
+    [TestMethod]
+    public void TimingAttack_MacVerification_TimingIsConsistent()
+    {
+        // Verify that the time to reject a MAC mismatch at byte 0 is similar to
+        // the time at byte 31.  A constant-time XOR-accumulator processes every byte
+        // unconditionally; a short-circuit comparison would show a large ratio.
+        const int warmup     = 200;
+        const int iterations = 1_000;
+
+        var earlyMismatch = FlipMacByte(0);
+        var lateMismatch  = FlipMacByte(MacBytesLength - 1);
+
+        // Warm up the JIT so first-run variance does not skew the measurement.
+        for (int i = 0; i < warmup; i++)
+        {
+            TryFromToken(earlyMismatch);
+            TryFromToken(lateMismatch);
+        }
+
+        var sw = Stopwatch.StartNew();
+        for (int i = 0; i < iterations; i++)
+            TryFromToken(earlyMismatch);
+        long earlyTicks = sw.ElapsedTicks;
+
+        sw.Restart();
+        for (int i = 0; i < iterations; i++)
+            TryFromToken(lateMismatch);
+        long lateTicks = sw.ElapsedTicks;
+
+        // Allow up to 4× variance to absorb GC/scheduler noise.
+        // A short-circuit comparison would show orders-of-magnitude difference.
+        double ratio = (double)Math.Max(earlyTicks, lateTicks) / Math.Min(earlyTicks, lateTicks);
+        Assert.IsTrue(ratio < 4.0,
+            $"Timing ratio {ratio:F2} suggests non-constant-time MAC comparison " +
+            $"(early={earlyTicks} ticks, late={lateTicks} ticks over {iterations} iterations).");
+    }
+
+    // Token format: [IV: 16 bytes][ciphertext][MAC: 32 bytes]
+    private const int MacBytesLength = 32;
+
+    /// <summary>
+    /// Produces a token string identical to a freshly-generated valid token except
+    /// that one byte in the embedded MAC (at <paramref name="macOffset"/> from the
+    /// start of the MAC region) is bit-flipped.
+    /// </summary>
+    private static string FlipMacByte(int macOffset)
+    {
+        var token  = new AuthenticatedValue([1, 2, 3], FutureExpiry).ToTokenString(Secret);
+        var base64 = token.Replace('-', '+').Replace('_', '/');
+        base64 += new string('=', (4 - base64.Length % 4) % 4);
+
+        var bytes    = Convert.FromBase64String(base64);
+        int macStart = bytes.Length - MacBytesLength;
+        bytes[macStart + macOffset] ^= 0xFF;
+
+        return Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_').TrimEnd('=');
+    }
+
+    private static void TryFromToken(string token)
+    {
+        try { AuthenticatedValue.FromTokenString(token, Secret, Now); }
+        catch (CryptographicException) { /* expected — we are only measuring elapsed time */ }
     }
 
     // -------------------------------------------------------------------------
