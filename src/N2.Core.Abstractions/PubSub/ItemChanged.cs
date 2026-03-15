@@ -1,29 +1,31 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-using N2.Core.Commands;
-
 namespace N2.Core.PubSub;
-
 
 /// <summary>
 /// Information about a modified item
 /// </summary>
 public struct ItemChanged : IItemChanged, IEquatable<ItemChanged>
 {
+    public DateTime DateTime { get; set; }
     public Type Type { get; set; }
     public Guid Uuid { get; set; }
-    public DateTime DateTime { get; set; }
+    public static bool operator !=(ItemChanged left, ItemChanged right)
+    {
+        return !(left == right);
+    }
 
-    public override bool Equals(object? obj)
+    public static bool operator ==(ItemChanged left, ItemChanged right)
+    {
+        return left.Equals(right);
+    }
+
+    public readonly override bool Equals(object? obj)
     {
         return (obj is ItemChanged itemChanged)
         ? Equals(itemChanged)
         : false;
     }
 
-    public bool Equals(ItemChanged other) {
+    public readonly bool Equals(ItemChanged other) {
         return
             Type == other.Type &&
             Uuid == other.Uuid;
@@ -45,15 +47,5 @@ public struct ItemChanged : IItemChanged, IEquatable<ItemChanged>
             return hash;
         }
 #endif
-    }
-
-    public static bool operator ==(ItemChanged left, ItemChanged right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(ItemChanged left, ItemChanged right)
-    {
-        return !(left == right);
     }
 }

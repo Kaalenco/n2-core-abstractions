@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using N2.Core.PubSub;
 
-namespace N2.Core.UnitTests.PubSub;
+namespace N2.Core.Abstractions.UnitTests.PubSub;
 
 [TestClass]
 public class WithItemChanged
