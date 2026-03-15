@@ -19,9 +19,9 @@
     <RootNamespace>N2.Core</RootNamespace>
     <ProductName>N2 Core libraries</ProductName>
 
-    <Version>1.5.0</Version>
-    <ProductVersion>1.5.0</ProductVersion>
-    <PackageVersion>1.5.0</PackageVersion>
+    <Version>1.5.1</Version>
+    <ProductVersion>1.5.1</ProductVersion>
+    <PackageVersion>1.5.1</PackageVersion>
 
     <PackageId>N2.Core.Abstractions</PackageId>
     <PackageType>Dependency</PackageType>
