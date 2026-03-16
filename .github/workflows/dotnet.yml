@@ -118,15 +118,18 @@ jobs:
     if: |
       github.event_name == 'push' &&
       (needs.integration-tests-mysql.result == 'success' || needs.integration-tests-mysql.result == 'skipped')
+    # Hoist all vars/secrets to job level so every step can access them without
+    # repeating env blocks. CSPROJ_PATH and NUGET_PACKAGE_ID are repository
+    # variables (non-secret); PACKAGE_N2 is a repository secret.
+    env:
+      CSPROJ_PATH: ${{ vars.CSPROJ_PATH }}
+      NUGET_PACKAGE_ID: ${{ vars.NUGET_PACKAGE_ID }}
+      PACKAGE_N2: ${{ secrets.PACKAGE_N2 }}
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Verify workflow parameters
-      env:
-        CSPROJ_PATH: ${{ vars.CSPROJ_PATH }}
-        NUGET_PACKAGE_ID: ${{ vars.NUGET_PACKAGE_ID }}
-        PACKAGE_N2: ${{ secrets.PACKAGE_N2 }}
       run: bash scripts/verify-workflow-params.sh CSPROJ_PATH NUGET_PACKAGE_ID PACKAGE_N2
 
     - name: Setup .NET 8.0
@@ -147,9 +150,6 @@ jobs:
 
     - name: Check if version already exists on NuGet
       id: version_check
-      env:
-        CSPROJ_PATH: ${{ vars.CSPROJ_PATH }}
-        NUGET_PACKAGE_ID: ${{ vars.NUGET_PACKAGE_ID }}
       run: |
         VERSION=$(grep -oP '(?<=<PackageVersion>)[^<]+' "$CSPROJ_PATH")
         echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -169,4 +169,4 @@ jobs:
           echo "Version ${{ steps.version_check.outputs.version }} already exists on NuGet — nothing to publish."
           exit 0
         fi
-        dotnet nuget push **/*.nupkg --api-key ${{ secrets.PACKAGE_N2 }} --source https://api.nuget.org/v3/index.json
+        dotnet nuget push **/*.nupkg --api-key $PACKAGE_N2 --source https://api.nuget.org/v3/index.json
