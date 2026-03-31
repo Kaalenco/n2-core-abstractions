@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.0 — 2026-03-31
+
+Breaking changes in `IHttpClient` — all method signatures now require a `CancellationToken` parameter.
+
+- Added `CancellationToken token` parameter to all `IHttpClient` methods: `DeleteAsync`, `GetRelativeAsync`, `ReadJsonDocumentAsync`, `GetFromUriAsync`, `PostRelativeAsync`, `PostResourceAsync`, `PutRelativeAsync`, and `PutResourceAsync`.
+- Added primitive `PostAsync(Uri, HttpContent, CancellationToken)` method returning raw `HttpResponseMessage` for callers that need direct control over the response.
+- Added primitive `GetAsync<TResource>(Uri, CancellationToken)` method returning raw `HttpResponseMessage`.
+- Enabled NuGet audit (`NuGetAudit`, `NuGetAuditMode=All`, `NuGetAuditLevel=Low`) in the project file.
+- Removed suppressions for `CA5349` (weak cryptographic algorithms) and `CA5394` (insecure randomness) — these warnings are now enforced.
+- Updated `WARNINGS.md` to remove the corresponding suppression entries.
+
 ## 1.5.1 — 2026-03-31
 
 - Added `src/WARNINGS.md` documenting all suppressed analyser warnings with severity ratings and guidance on when each suppression is safe to keep.
