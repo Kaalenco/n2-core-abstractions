@@ -48,26 +48,14 @@ A hierarchy of typed exceptions for common error scenarios: configuration proble
 
 An interface over system-level services (currently time) so that code depending on the current clock can be tested deterministically.
 
-## Change Log
+## Project documentation
 
-- **2024-03-29** Version 1.0.1 : Collected several abstractions and utilities into a single package.
-	- Initial release of N2.Core with basic abstractions and utilities.
-- **2025-04-15** Version 1.2.1 :  Isolating abstractions into separate namespaces for better organization.
-	- Introduced `N2.Core.Abstractions` namespace for HTTP-related abstractions.
-	- Introduced `N2.Core.Entity` namespace for database context and model abstractions.
-	- Introduced `N2.Core.Identity` namespace for user authentication and role management abstractions.
-	- Introduced `N2.Core.Models` namespace for response models and utilities.
-	- Introduced `N2.Core.Dms` namespace for document management services abstractions.
-	- Added initial documentation for each namespace and its components.
-- **2025-05-28** Version 1.3.1 : Breaking changes due to namespace restructuring.
-	- Added a unit test project with some initial tests.
-	- Rename `N2.Core.Models` to `N2.Core.Commands` and extended command handler abstractions and base classes for command handling.
-	- Extended Entity namespace with additional interfaces for database context management.
-	- Extended Identity namespace with additional user and role management interfaces.
-	- Add exception definitions for common error scenarios.
-	- Rename 'ITextService' to 'ITranslator' to better reflect its purpose.
-- **2025-06-03** Version 1.3.4 : Updates and fixes, documentation
-- **2025-06-04** Version 1.3.5 : Added support for NetStandard 2.0
-- **2026-03-11** Version 1.5.0 : Added support for Net10
-	- Added support for .NET 10.0 and dropped support for .NET 9.0.
-	- Updated documentation to reflect new version support and any breaking changes.
+| Document | Description |
+|----------|-------------|
+| [src/DEVELOPER-GUIDE.md](src/DEVELOPER-GUIDE.md) | Developer guide — build commands, CI/CD pipeline, and maintenance notes. |
+| [src/WARNINGS.md](src/WARNINGS.md) | Suppressed analyser warnings — lists every entry in `NoWarn` with severity rating and guidance on when each suppression is safe to keep. |
+| [CHANGELOG.md](CHANGELOG.md) | Full version history. |
+
+## Change log
+
+See [CHANGELOG.md](CHANGELOG.md) for the full history. Current version: **1.5.1**.
