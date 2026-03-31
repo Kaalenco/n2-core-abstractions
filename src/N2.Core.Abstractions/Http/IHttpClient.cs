@@ -101,7 +101,7 @@ public interface IHttpClient
     /// <param name="content">The HTTP content of the message</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
     /// <returns>An Http result (<see cref="HttpResponseMessage" />)</returns>
-    Task<HttpResponseMessage> PostAsync<TResource>(Uri resourcePath, HttpContent content, CancellationToken token);
+    Task<HttpResponseMessage> PostAsync(Uri resourcePath, HttpContent content, CancellationToken token);
 
     /// <summary>
     /// Performs a GET operation to a given resource path and returns the http response message.
@@ -111,7 +111,7 @@ public interface IHttpClient
     /// </summary>
     /// <param name="resourcePath">The full unified resource indicator.</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
-    Task<HttpResponseMessage> GetAsync<TResource>(Uri resourcePath, CancellationToken token);
+    Task<HttpResponseMessage> GetAsync(Uri resourcePath, CancellationToken token);
 
     /// <summary>
     /// Performs a PUT operation to a given relative path and deserializes
