@@ -4,7 +4,7 @@ namespace N2.Core.Commands;
 
 public abstract class CommandResponse : ICommandResponse
 {
-    public ResponseStatus Status { get; protected set; }
+    public ResponseStatus Status { get; protected set; } = ResponseStatus.Success;
 
     [JsonIgnore(Condition =
         JsonIgnoreCondition.WhenWritingNull |

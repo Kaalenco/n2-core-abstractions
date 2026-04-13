@@ -24,6 +24,42 @@ public interface IUserContext
     bool IsAdmin();
 
     /// <summary>
+    /// Identifier for the current tenant context. 
+    /// If the user is not in a tenant context, this will return Guid.Empty.
+    /// </summary>
+    Guid CurrentTenantId { get; }
+
+    /// <summary>
+    /// Name for the current tenant context. If the user is not in a tenant 
+    /// context, this will return null or an empty string.
+    /// </summary>
+    string CurrentTenantName { get; }
+
+    /// <summary>
+    /// Sets the current tenant context to the specified tenant identifier.
+    /// This method allows the user context to switch to a different tenant, 
+    /// enabling access to tenant-specific resources and permissions. If the 
+    /// tenant context is successfully set, the user will operate within the 
+    /// scope of the specified tenant for subsequent operations.
+    /// </summary>
+    /// <param name="tenantId">The unique identifier of the tenant to set as the current context.</param>
+    /// <returns>true if the tenant context was successfully set; otherwise, false.</returns>
+    bool SetTenantContext(Guid tenantId);
+    /// <summary>
+    /// Sets the current tenant context to the specified tenant name. This 
+    /// method allows the user context to switch to a different tenant, enabling 
+    /// access to tenant-specific resources and permissions. If the tenant 
+    /// context is successfully set, the user will operate within the scope of 
+    /// the specified tenant for subsequent operations.
+    /// </summary>
+    /// <param name="tenantName">The name of the tenant to set as the current context.</param>
+    /// <returns>true if the tenant context was successfully set; otherwise, false.</returns>
+    bool SetTenantContext(string tenantName);
+
+    bool IsInTenant(Guid tenantId);
+    bool IsInTenant(string tenantName);
+
+    /// <summary>
     /// The primary partition key for the user. The partition
     /// key is used to read the user relevant data from a data repository.
     /// </summary>

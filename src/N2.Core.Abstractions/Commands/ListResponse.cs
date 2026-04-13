@@ -14,8 +14,21 @@ public class ListResponse<T> : CommandResponse<IReadOnlyList<T>>, IListResponse<
         Value = [];
     }
 
+    public ListResponse(ResponseStatus responseStatus)
+    {
+        Value = [];
+        Status = responseStatus;
+    }
+
     public ListResponse(IEnumerable<T> values)
     {
         Value = [.. values];
+    }
+
+    public ListResponse(IEnumerable<T> values, ResponseStatus responseStatus)
+    {
+        Value = [.. values];
+        Status = responseStatus;
+
     }
 }
