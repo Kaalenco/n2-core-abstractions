@@ -60,6 +60,15 @@ public interface IUserContext
     bool IsInTenant(string tenantName);
 
     /// <summary>
+    /// Returns all tenant memberships for this user. Each entry carries the tenant's ID and name
+    /// together with the roles the user holds within that specific tenant.
+    /// Role checks (<see cref="IsInRole"/>, <see cref="IsAdmin"/>, <see cref="CanPublish"/>, etc.)
+    /// are evaluated against the active tenant's role set; call <see cref="SetTenantContext(Guid)"/>
+    /// before performing any role check.
+    /// </summary>
+    IEnumerable<(Guid TenantId, string TenantName, IReadOnlyList<string> Roles)> TenantMemberships { get; }
+
+    /// <summary>
     /// The primary partition key for the user. The partition
     /// key is used to read the user relevant data from a data repository.
     /// </summary>
