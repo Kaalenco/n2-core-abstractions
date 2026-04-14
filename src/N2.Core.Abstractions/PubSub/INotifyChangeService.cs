@@ -14,19 +14,22 @@ public interface INotifyChangeService
     /// <typeparam name="T">The type of item that implements <see cref="IItemChanged"/>.</typeparam>
     /// <param name="trackingId">Correlation identifier for tracking this notification across systems.</param>
     /// <param name="item">The modified item to notify listeners about.</param>
-    void ItemModified<T>(TrackingId trackingId, T item) where T : IItemChanged;
+    /// <returns>The number of listeners that processed the notification.</returns>
+    int ItemModified<T>(TrackingId trackingId, T item) where T : IItemChanged;
 
     /// <summary>
     /// Registers a listener to receive notifications when items are modified.
     /// This method should be thread-safe.
     /// </summary>
     /// <param name="listener">The listener to add.</param>
-    void AddSubscription(INotifyChangeListener listener);
+    /// <returns><see langword="true"/> if the listener was added; <see langword="false"/> if it was already registered.</returns>
+    bool AddSubscription(INotifyChangeListener listener);
 
     /// <summary>
     /// Unregisters a listener from receiving notifications.
     /// This method should be thread-safe.
     /// </summary>
     /// <param name="listener">The listener to remove.</param>
-    void RemoveSubscription(INotifyChangeListener listener);
+    /// <returns><see langword="true"/> if the listener was found and removed; <see langword="false"/> if it was not registered.</returns>
+    bool RemoveSubscription(INotifyChangeListener listener);
 }

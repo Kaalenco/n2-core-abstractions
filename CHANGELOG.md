@@ -1,15 +1,36 @@
 # Changelog
 
-## 1.6.0 — 2026-03-31
+## 1.7.0 — 2026-04-14
 
-Breaking changes in `IHttpClient` — all method signatures now require a `CancellationToken` parameter.
+### Identity
 
-- Added `CancellationToken token` parameter to all `IHttpClient` methods: `DeleteAsync`, `GetRelativeAsync`, `ReadJsonDocumentAsync`, `GetFromUriAsync`, `PostRelativeAsync`, `PostResourceAsync`, `PutRelativeAsync`, and `PutResourceAsync`.
-- Added primitive `PostAsync(Uri, HttpContent, CancellationToken)` method returning raw `HttpResponseMessage` for callers that need direct control over the response.
-- Added primitive `GetAsync<TResource>(Uri, CancellationToken)` method returning raw `HttpResponseMessage`.
+- Extended `IWebTokenGenerator` with `GenerateRefreshToken()` (returns a cryptographically random 88-character Base64 string) and `RefreshTokenExpiry()` (returns the configured expiry `DateTime` for a new refresh token). The caller is responsible for persisting the refresh token and associating it with the user.
+- Extended `IUserContext` with full multi-tenant support: `CurrentTenantId`, `CurrentTenantName`, `SetTenantContext(Guid)`, `SetTenantContext(string)`, `IsInTenant(Guid)`, `IsInTenant(string)`, and `TenantMemberships` (enumerates all tenant memberships with per-tenant role lists). Role-check methods (`IsAdmin`, `CanPublish`, etc.) evaluate against the active tenant; call `SetTenantContext` before performing role checks.
+
+### PubSub
+
+- Refactored `IItemChanged` — added XML documentation; properties are now `DateTime DateTime`, `Type Type`, `Guid Uuid`.
+- `ItemChanged` is now a `readonly struct` implementing `IItemChanged` and `IEquatable<ItemChanged>`. Equality is based on `Type` and `Uuid` only (timestamp is excluded). Includes `==`/`!=` operators and a multi-target `GetHashCode` (`HashCode.Combine` on .NET 8+, manual prime-number hash on older targets).
+- **Breaking:** `INotifyChangeListener.OnItemModified` now returns `bool` instead of `void` — `true` if the listener processed the notification, `false` if it ignored it (e.g. type mismatch).
+- **Breaking:** `INotifyChangeService.ItemModified<T>` now returns `int` (number of listeners that processed the notification) instead of `void`.
+- **Breaking:** `INotifyChangeService.AddSubscription` now returns `bool` (`true` if newly registered, `false` if already present) instead of `void`.
+- **Breaking:** `INotifyChangeService.RemoveSubscription` now returns `bool` (`true` if found and removed, `false` if not registered) instead of `void`.
+
+### Identity (IIdentityManager)
+
+- **Breaking:** `LogoffUser` now returns `Task<ICommandResponse>` instead of `Task`.
+- **Breaking:** `RegisterRefreshToken` now returns `Task<ICommandResponse>` instead of `Task`.
+- **Breaking:** `GetUserSecret` now returns `Task<ICommandResponse<string>>` instead of `Task<string>`.
+
+### HTTP (1.6.0)
+
+Breaking: all `IHttpClient` method signatures now require a `CancellationToken` parameter.
+
+- Added `CancellationToken token` to `DeleteAsync`, `GetRelativeAsync`, `ReadJsonDocumentAsync`, `GetFromUriAsync`, `PostRelativeAsync`, `PostResourceAsync`, `PutRelativeAsync`, and `PutResourceAsync`.
+- Added primitive `PostAsync(Uri, HttpContent, CancellationToken)` returning raw `HttpResponseMessage`.
+- Added primitive `GetAsync<TResource>(Uri, CancellationToken)` returning raw `HttpResponseMessage`.
 - Enabled NuGet audit (`NuGetAudit`, `NuGetAuditMode=All`, `NuGetAuditLevel=Low`) in the project file.
-- Removed suppressions for `CA5349` (weak cryptographic algorithms) and `CA5394` (insecure randomness) — these warnings are now enforced.
-- Updated `WARNINGS.md` to remove the corresponding suppression entries.
+- Removed suppressions for `CA5349` and `CA5394` — weak-crypto and insecure-randomness warnings are now enforced.
 
 ## 1.5.1 — 2026-03-31
 

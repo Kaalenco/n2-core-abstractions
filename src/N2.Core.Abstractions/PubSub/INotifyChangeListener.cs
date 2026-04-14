@@ -11,5 +11,9 @@ public interface INotifyChangeListener
     /// This method should return quickly to avoid blocking other notifications.
     /// </summary>
     /// <param name="itemChanged">Information about the modified item.</param>
-    void OnItemModified(IItemChanged itemChanged);
+    /// <returns>
+    /// <see langword="true"/> if this listener processed the notification;
+    /// <see langword="false"/> if the notification was ignored (e.g. type mismatch).
+    /// </returns>
+    bool OnItemModified(IItemChanged itemChanged);
 }

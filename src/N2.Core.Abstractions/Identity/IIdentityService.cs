@@ -1,5 +1,7 @@
 using System.Security.Claims;
 
+using N2.Core.Commands;
+
 namespace N2.Core.Identity;
 
 /// <summary>
@@ -38,7 +40,7 @@ public interface IIdentityManager
     /// </param>
     /// <returns>
     /// </returns>
-    Task LogoffUser(Guid refresh, string scope);
+    Task<ICommandResponse> LogoffUser(Guid refresh, string scope);
 
     /// <summary>
     /// Register a refresh token for the user.
@@ -60,7 +62,7 @@ public interface IIdentityManager
     /// </param>
     /// <returns>
     /// </returns>
-    Task RegisterRefreshToken(Guid sid, string audience, string scope, Guid refreshToken, DateTime tokenTimeout);
+    Task<ICommandResponse> RegisterRefreshToken(Guid sid, string audience, string scope, Guid refreshToken, DateTime tokenTimeout);
 
     /// <summary>
     /// Find the claims in the identity repository
@@ -99,7 +101,7 @@ public interface IIdentityManager
     /// </param>
     /// <returns>
     /// </returns>
-    Task<string> GetUserSecret(string userName, string scope);
+    Task<ICommandResponse<string>> GetUserSecret(string userName, string scope);
 
     /// <summary>
     /// Get the current user identifier.

@@ -19,10 +19,10 @@
     <RootNamespace>N2.Core</RootNamespace>
     <ProductName>N2 Core libraries</ProductName>
 
-    <Version>1.6.5</Version>
-    <PackageVersion>1.6.5</PackageVersion>
-    <AssemblyVersion>1.6.5</AssemblyVersion>
-    <ProductVersion>1.6.5</ProductVersion>
+    <Version>1.7.0</Version>
+    <PackageVersion>1.7.0</PackageVersion>
+    <AssemblyVersion>1.7.0</AssemblyVersion>
+    <ProductVersion>1.7.0</ProductVersion>
 
     <PackageId>N2.Core.Abstractions</PackageId>
     <PackageType>Dependency</PackageType>

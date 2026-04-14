@@ -1,11 +1,18 @@
 # Maintenance workflow
 #
-# Runs weekly to delete old workflow runs:
-#   - Failed runs older than 10 days
-#   - All codeql.yml runs older than 10 days
+# Runs weekly to:
+#   1. Delete old workflow runs:
+#        - Failed runs older than 10 days
+#        - All codeql.yml runs older than 10 days
+#   2. Unlist old NuGet package versions (keeps the 5 most recent).
+#      NuGet does not support deletion; unlisted packages are hidden from search
+#      but remain downloadable for existing consumers.
 #
-# Requires a repository secret GH_MAINTENANCE containing a fine-grained PAT
-# with Actions: Read and Write permission on this repository.
+# Required secrets / variables:
+#   GH_MAINTENANCE      Fine-grained PAT with Actions: Read+Write on this repo
+#   PACKAGE_N2          NuGet API key — must have "Unlist package" scope as well
+#                       as the usual push scope (edit the key on nuget.org if needed)
+#   NUGET_PACKAGE_ID    Repository variable, e.g. "N2.Core.Abstractions"
 
 name: Maintenance
 
@@ -37,3 +44,21 @@ jobs:
 
     - name: Delete old workflow runs
       run: bash scripts/delete-workflow-runs.sh
+
+  # ── Unlist Old NuGet Package Versions ───────────────────────────────────────
+  unlist-old-nuget-versions:
+    name: Unlist Old NuGet Versions
+    runs-on: ubuntu-latest
+    env:
+      NUGET_PACKAGE_ID: ${{ vars.NUGET_PACKAGE_ID }}
+      PACKAGE_N2: ${{ secrets.PACKAGE_N2 }}
+      KEEP_VERSIONS: 5
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Verify workflow parameters
+      run: bash scripts/verify-workflow-params.sh NUGET_PACKAGE_ID PACKAGE_N2 KEEP_VERSIONS=5
+
+    - name: Unlist old NuGet versions
+      run: bash scripts/unlist-old-nuget-versions.sh
