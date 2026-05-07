@@ -7,64 +7,50 @@ namespace N2.Core.Commands;
 public sealed class WithDictionaryResponse
 {
     // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
+
+    [TestMethod]
+    public void DefaultCtorCreatesEmptyDictionary()
+    {
+        DictionaryResponse r = new();
+        Assert.IsNotNull(r.Value);
+        Assert.AreEqual(0, r.Value.Count);
+        Assert.AreEqual(ResponseStatus.Success, r.Status);
+    }
+
+    // -------------------------------------------------------------------------
     // JSON serialization
     // -------------------------------------------------------------------------
 
     [TestMethod]
-    public void Serialization_RoundTrip_PreservesAllProperties()
+    public void Serialization_RoundTrip_PreservesValueAndStatus()
     {
-        var dto = new DictionaryResponse
-        {
-            // TODO: assign every public property with explicit, culture-neutral values.
-            // DateTime: always use DateTimeKind.Utc — Local and Unspecified do not
-            // survive a System.Text.Json round-trip with their Kind intact.
-            //   e.g. CreatedAt = new DateTime(2024, 6, 15, 10, 30, 0, DateTimeKind.Utc)
-        };
+        DictionaryResponse dto = new();
+        dto.Value!["name"] = "test";
 
-        var json   = JsonSerializer.Serialize(dto);
-        var result = JsonSerializer.Deserialize<DictionaryResponse>(json);
+        string json = JsonSerializer.Serialize(dto);
+        DictionaryResponse? result = JsonSerializer.Deserialize<DictionaryResponse>(json);
 
         Assert.IsNotNull(result);
-        // TODO: assert each property by value.
-        // For DateTime properties assert both value and Kind to catch locale drift:
-        //   Assert.AreEqual(dto.CreatedAt, result.CreatedAt);
-        //   Assert.AreEqual(DateTimeKind.Utc, result.CreatedAt.Kind);
+        Assert.AreEqual(ResponseStatus.Success, result.Status);
+        Assert.IsNotNull(result.Value);
+        Assert.IsTrue(result.Value.ContainsKey("name"));
+        Assert.AreEqual("test", ((JsonElement)result.Value["name"]).GetString());
     }
 
     [TestMethod]
-    public void Serialization_DateTimeProperties_KindIsPreserved()
+    public void Deserialization_EmptyJson_ValueIsNotNull()
     {
-        // System.Text.Json round-trips DateTimeKind.Utc correctly (appends 'Z').
-        // DateTimeKind.Local becomes Unspecified on deserialize — use Utc in DTOs.
-        var utcValue = new DateTime(2024, 6, 15, 10, 30, 0, DateTimeKind.Utc);
-        var dto = new DictionaryResponse
-        {
-            // TODO: set the DateTime property under test
-            //   SomeDateProperty = utcValue
-        };
-
-        var json   = JsonSerializer.Serialize(dto);
-        var result = JsonSerializer.Deserialize<DictionaryResponse>(json);
-
+        DictionaryResponse? result = JsonSerializer.Deserialize<DictionaryResponse>("{}");
         Assert.IsNotNull(result);
-        // TODO: replace with actual DateTime property name
-        //   Assert.AreEqual(utcValue, result.SomeDateProperty);
-        //   Assert.AreEqual(DateTimeKind.Utc, result.SomeDateProperty.Kind);
-        Assert.Inconclusive("Replace TODOs with the actual DateTime property name.");
-    }
-
-    [TestMethod]
-    public void Deserialization_EmptyJson_ReturnsDefaultInstance()
-    {
-        var result = JsonSerializer.Deserialize<DictionaryResponse>("{}");
-        Assert.IsNotNull(result);
+        Assert.IsNotNull(result.Value);
     }
 
     [TestMethod]
     public void Deserialization_UnknownProperties_AreIgnored()
     {
-        var json   = "{\"__unknown\": 42}";
-        var result = JsonSerializer.Deserialize<DictionaryResponse>(json);
+        DictionaryResponse? result = JsonSerializer.Deserialize<DictionaryResponse>("{\"__unknown\": 42}");
         Assert.IsNotNull(result);
     }
 }

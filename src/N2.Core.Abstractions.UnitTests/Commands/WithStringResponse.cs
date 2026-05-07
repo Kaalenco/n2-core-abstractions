@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace N2.Core.Commands;
@@ -7,64 +6,104 @@ namespace N2.Core.Commands;
 public sealed class WithStringResponse
 {
     // -------------------------------------------------------------------------
-    // JSON serialization
+    // Constructors
     // -------------------------------------------------------------------------
 
     [TestMethod]
-    public void Serialization_RoundTrip_PreservesAllProperties()
+    public void Constructor_ValueAndStatus_SetsProperties()
     {
-        var dto = new StringResponse
-        {
-            // TODO: assign every public property with explicit, culture-neutral values.
-            // DateTime: always use DateTimeKind.Utc — Local and Unspecified do not
-            // survive a System.Text.Json round-trip with their Kind intact.
-            //   e.g. CreatedAt = new DateTime(2024, 6, 15, 10, 30, 0, DateTimeKind.Utc)
-        };
-
-        var json   = JsonSerializer.Serialize(dto);
-        var result = JsonSerializer.Deserialize<StringResponse>(json);
-
-        Assert.IsNotNull(result);
-        // TODO: assert each property by value.
-        // For DateTime properties assert both value and Kind to catch locale drift:
-        //   Assert.AreEqual(dto.CreatedAt, result.CreatedAt);
-        //   Assert.AreEqual(DateTimeKind.Utc, result.CreatedAt.Kind);
+        StringResponse r = new("hello", 200);
+        Assert.AreEqual("hello", r.Value);
+        Assert.AreEqual(ResponseStatus.Success, r.Status);
+        Assert.IsNull(r.Message);
     }
 
     [TestMethod]
-    public void Serialization_DateTimeProperties_KindIsPreserved()
+    public void Constructor_ValueStatusAndMessage_SetsAllProperties()
     {
-        // System.Text.Json round-trips DateTimeKind.Utc correctly (appends 'Z').
-        // DateTimeKind.Local becomes Unspecified on deserialize — use Utc in DTOs.
-        var utcValue = new DateTime(2024, 6, 15, 10, 30, 0, DateTimeKind.Utc);
-        var dto = new StringResponse
-        {
-            // TODO: set the DateTime property under test
-            //   SomeDateProperty = utcValue
-        };
+        StringResponse r = new("body text", 404, "resource missing");
+        Assert.AreEqual("body text", r.Value);
+        Assert.AreEqual(ResponseStatus.NotFound, r.Status);
+        Assert.AreEqual("resource missing", r.Message);
+    }
 
-        var json   = JsonSerializer.Serialize(dto);
-        var result = JsonSerializer.Deserialize<StringResponse>(json);
+    // -------------------------------------------------------------------------
+    // Factory methods
+    // -------------------------------------------------------------------------
 
-        Assert.IsNotNull(result);
-        // TODO: replace with actual DateTime property name
-        //   Assert.AreEqual(utcValue, result.SomeDateProperty);
-        //   Assert.AreEqual(DateTimeKind.Utc, result.SomeDateProperty.Kind);
-        Assert.Inconclusive("Replace TODOs with the actual DateTime property name.");
+    [TestMethod]
+    public void Accept_ReturnsStatus200WithValue()
+    {
+        StringResponse r = StringResponse.Accept("result");
+        Assert.AreEqual("result", r.Value);
+        Assert.AreEqual(ResponseStatus.Success, r.Status);
     }
 
     [TestMethod]
-    public void Deserialization_EmptyJson_ReturnsDefaultInstance()
+    public void Fail_ReturnsStatus500WithValueAndMessage()
     {
-        var result = JsonSerializer.Deserialize<StringResponse>("{}");
-        Assert.IsNotNull(result);
+        StringResponse r = StringResponse.Fail("output", "something failed");
+        Assert.AreEqual("output", r.Value);
+        Assert.AreEqual(ResponseStatus.ServerError, r.Status);
+        Assert.AreEqual("something failed", r.Message);
     }
 
     [TestMethod]
-    public void Deserialization_UnknownProperties_AreIgnored()
+    public void NoContent_ReturnsStatus204WithValue()
     {
-        var json   = "{\"__unknown\": 42}";
-        var result = JsonSerializer.Deserialize<StringResponse>(json);
-        Assert.IsNotNull(result);
+        StringResponse r = StringResponse.NoContent("empty");
+        Assert.AreEqual("empty", r.Value);
+        Assert.AreEqual(ResponseStatus.NoContent, r.Status);
+    }
+
+    [TestMethod]
+    public void NoChange_ReturnsStatus203WithValue()
+    {
+        StringResponse r = StringResponse.NoChange("same");
+        Assert.AreEqual("same", r.Value);
+        Assert.AreEqual(ResponseStatus.Information, r.Status);
+    }
+
+    // -------------------------------------------------------------------------
+    // Equals, GetHashCode, ToString, Deconstruct
+    // -------------------------------------------------------------------------
+
+    [TestMethod]
+    public void Equals_SameValue_ReturnsTrue()
+    {
+        StringResponse a = new("hello", 200);
+        StringResponse b = new("hello", 404);
+        Assert.IsTrue(a.Equals(b));
+    }
+
+    [TestMethod]
+    public void Equals_DifferentValue_ReturnsFalse()
+    {
+        StringResponse a = new("hello", 200);
+        StringResponse b = new("world", 200);
+        Assert.IsFalse(a.Equals(b));
+    }
+
+    [TestMethod]
+    public void Equals_Null_ReturnsFalse()
+    {
+        StringResponse r = new("hello", 200);
+        Assert.IsFalse(r.Equals(null));
+    }
+
+    [TestMethod]
+    public void ToString_ReturnsValue()
+    {
+        StringResponse r = new("my-value", 200);
+        Assert.AreEqual("my-value", r.ToString());
+    }
+
+    [TestMethod]
+    public void Deconstruct_ReturnsValueAndStatus()
+    {
+        StringResponse r = new("data", 201);
+        var (value, status) = r;
+        Assert.AreEqual("data", value);
+        Assert.AreEqual(ResponseStatus.Created, status);
     }
 }
