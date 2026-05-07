@@ -7,7 +7,7 @@ using N2.Core.Commands;
 namespace N2.Core.Abstractions.Commands;
 
 [TestClass]
-public class CommandResponseTests
+public class WithCommandResponse
 {
     /// <summary>
     /// A simple request object
@@ -156,3 +156,4 @@ public class CommandResponseTests
         Assert.IsFalse(response.Equals(null));
     }
 }
+

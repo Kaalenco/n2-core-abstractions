@@ -10,7 +10,7 @@ namespace N2.Core.Abstractions.Commands;
 /// The command request tests.
 /// </summary>
 [TestClass]
-public class CommandRequestTests
+public class WithCommandRequest
 {
     /// <summary>
     /// A simple request object

@@ -9,7 +9,7 @@ namespace N2.Core.Abstractions.Commands;
 /// The paged response tests.
 /// </summary>
 [TestClass()]
-public class PagedResponseTests
+public class WithPagedResponse
 {
     private static readonly string[] items = new string[] { "a", "b", "c", "d", "e" };
 
