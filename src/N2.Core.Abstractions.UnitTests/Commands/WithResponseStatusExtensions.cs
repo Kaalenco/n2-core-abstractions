@@ -45,17 +45,32 @@ public class WithResponseStatusExtensions
     public void ToMessageReturnsCorrectTextForErrorStatuses()
     {
         Assert.AreEqual("The request was not accepted.", ResponseStatus.NotAccepted.ToMessage());
+        Assert.AreEqual("The resource has not been modified since the last request.", ResponseStatus.NotModified.ToMessage());
         Assert.AreEqual("The request was invalid or cannot be served.", ResponseStatus.BadRequest.ToMessage());
         Assert.AreEqual("Authentication is required and has failed or has not yet been provided.", ResponseStatus.Unauthorized.ToMessage());
+        Assert.AreEqual("The server understood the request, but refuses to authorize it.", ResponseStatus.Forbidden.ToMessage());
         Assert.AreEqual("The requested resource could not be found.", ResponseStatus.NotFound.ToMessage());
+        Assert.AreEqual("The requested resource is not available in a format acceptable to the client.", ResponseStatus.NotAcceptable.ToMessage());
+        Assert.AreEqual("The server timed out waiting for the request.", ResponseStatus.TimeOut.ToMessage());
+        Assert.AreEqual("There was a conflict with the current state of the resource.", ResponseStatus.Conflict.ToMessage());
+        Assert.AreEqual("The resource is locked and cannot be modified at this time.", ResponseStatus.Locked.ToMessage());
+        Assert.AreEqual("Too many requests have been made in a given amount of time.", ResponseStatus.ToomanyRequests.ToMessage());
         Assert.AreEqual("An internal server error occurred while processing the request.", ResponseStatus.ServerError.ToMessage());
+        Assert.AreEqual("The server does not support the functionality required to fulfill the request.", ResponseStatus.NotImplemented.ToMessage());
         Assert.AreEqual("The service is currently unavailable, please try again later.", ResponseStatus.ServiceUnavailable.ToMessage());
     }
 
     [TestMethod]
     public void ToMessageReturnsUnknownForUndefinedStatus()
     {
-        ResponseStatus unknown = (ResponseStatus)999;
-        Assert.AreEqual("Unknown response status.", unknown.ToMessage());
+        Assert.AreEqual("Unknown response status.", ((ResponseStatus)999).ToMessage());
+    }
+
+    [TestMethod]
+    public void ToMessageReturnsUnknownForUnhandledDefinedStatuses()
+    {
+        Assert.AreEqual("Unknown response status.", ResponseStatus.None.ToMessage());
+        Assert.AreEqual("Unknown response status.", ResponseStatus.MethodNotAllowed.ToMessage());
+        Assert.AreEqual("Unknown response status.", ResponseStatus.PreconditionFailed.ToMessage());
     }
 }
