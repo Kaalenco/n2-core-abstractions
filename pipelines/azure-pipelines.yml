@@ -1,0 +1,123 @@
+# N2.Core.Abstractions — Build, Test, and Publish
+#
+# Required pipeline variable (set in Azure DevOps pipeline settings):
+#   AZURE_ARTIFACTS_FEED_NAME  — Azure Artifacts feed name, e.g. "my-packages"
+#
+# Publish stage runs only on pushes to trunk (not on PRs).
+
+trigger:
+  branches:
+    include:
+    - trunk
+  paths:
+    include:
+    - src/N2.*/**
+    exclude:
+    - docs/**
+    - '*.md'
+
+pr:
+  branches:
+    include:
+    - trunk
+  paths:
+    include:
+    - src/N2.*/**
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfiguration: Release
+
+stages:
+
+# ── Build and Unit Tests ──────────────────────────────────────────────────────
+- stage: Build
+  displayName: Build and Test
+  jobs:
+  - job: BuildAndTest
+    displayName: Build and unit tests
+    steps:
+
+    - task: UseDotNet@2
+      displayName: Setup .NET 8.0
+      inputs:
+        version: 8.0.x
+
+    - task: UseDotNet@2
+      displayName: Setup .NET 10.0
+      inputs:
+        version: 10.0.x
+
+    - task: DotNetCoreCLI@2
+      displayName: Restore dependencies
+      inputs:
+        command: restore
+        projects: src/**/*.csproj
+
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: build
+        projects: src/**/*.csproj
+        arguments: --no-restore --configuration $(buildConfiguration)
+
+    - task: DotNetCoreCLI@2
+      displayName: Unit tests
+      inputs:
+        command: test
+        projects: src/**/*.UnitTests.csproj
+        arguments: >-
+          --no-build
+          --configuration $(buildConfiguration)
+          --filter "TestCategory!=Integration"
+          --verbosity normal
+        publishTestResults: true
+        testRunTitle: Unit Tests
+      env:
+        Logging__LogLevel__Default: Error
+
+    - task: CopyFiles@2
+      displayName: Stage NuGet packages
+      inputs:
+        SourceFolder: src
+        Contents: '**/*.nupkg'
+        TargetFolder: $(Build.ArtifactStagingDirectory)/packages
+
+    - task: PublishPipelineArtifact@1
+      displayName: Upload NuGet packages
+      condition: always()
+      inputs:
+        targetPath: $(Build.ArtifactStagingDirectory)/packages
+        artifact: nuget-packages
+
+# ── Publish NuGet Package ─────────────────────────────────────────────────────
+- stage: Publish
+  displayName: Publish NuGet Package
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/trunk'))
+  jobs:
+  - job: Publish
+    displayName: Push to Azure Artifacts
+    steps:
+
+    - checkout: none
+
+    - task: DownloadPipelineArtifact@2
+      displayName: Download NuGet packages
+      inputs:
+        artifact: nuget-packages
+        targetPath: $(Pipeline.Workspace)/packages
+
+    - task: NuGetAuthenticate@1
+      displayName: Authenticate to Azure Artifacts
+
+    - task: DotNetCoreCLI@2
+      displayName: Push NuGet package
+      inputs:
+        command: push
+        packagesToPush: $(Pipeline.Workspace)/packages/**/*.nupkg
+        nuGetFeedType: internal
+        publishVstsFeed: $(AZURE_ARTIFACTS_FEED_NAME)
+        allowPackageConflicts: true
