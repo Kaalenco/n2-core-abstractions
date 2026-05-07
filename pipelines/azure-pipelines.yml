@@ -1,7 +1,7 @@
 # N2.Core.Abstractions — Build, Test, and Publish
 #
-# Required pipeline variable (set in Azure DevOps pipeline settings):
-#   AZURE_ARTIFACTS_FEED_NAME  — Azure Artifacts feed name, e.g. "my-packages"
+# Packages are pushed to the Azure Artifacts feed defined by `artifactsFeedName`.
+# The feed URL is constructed at runtime from System.CollectionUri and System.TeamProject.
 #
 # Publish stage runs only on pushes to trunk (not on PRs).
 
@@ -23,12 +23,17 @@ pr:
   paths:
     include:
     - src/N2.*/**
+    exclude:
+    - docs/**
+    - '*.md'
 
 pool:
   vmImage: ubuntu-latest
 
 variables:
   buildConfiguration: Release
+  NUGET_PACKAGES: $(Pipeline.Workspace)/.nuget/packages
+  artifactsFeedName: vault-packages
 
 stages:
 
@@ -49,6 +54,17 @@ stages:
       displayName: Setup .NET 10.0
       inputs:
         version: 10.0.x
+
+    - task: Cache@2
+      displayName: Cache NuGet packages
+      inputs:
+        key: 'nuget | "$(Agent.OS)" | src/**/*.csproj'
+        restoreKeys: |
+          nuget | "$(Agent.OS)"
+        path: $(NUGET_PACKAGES)
+
+    - task: NuGetAuthenticate@1
+      displayName: Authenticate to Azure Artifacts
 
     - task: DotNetCoreCLI@2
       displayName: Restore dependencies
@@ -87,7 +103,6 @@ stages:
 
     - task: PublishPipelineArtifact@1
       displayName: Upload NuGet packages
-      condition: always()
       inputs:
         targetPath: $(Build.ArtifactStagingDirectory)/packages
         artifact: nuget-packages
@@ -113,11 +128,17 @@ stages:
     - task: NuGetAuthenticate@1
       displayName: Authenticate to Azure Artifacts
 
-    - task: DotNetCoreCLI@2
+    - script: |
+        ORG=$(echo "$COLLECTION_URI" | sed 's|https://dev.azure.com/||; s|/$||')
+        PROJECT_ENCODED="${TEAM_PROJECT// /%20}"
+        FEED_URL="https://pkgs.dev.azure.com/${ORG}/${PROJECT_ENCODED}/_packaging/${FEED_NAME}/nuget/v3/index.json"
+        echo "Pushing to: $FEED_URL"
+        find "$(Pipeline.Workspace)/packages" -name "*.nupkg" -exec dotnet nuget push {} \
+          --source "$FEED_URL" \
+          --api-key AzureArtifacts \
+          --skip-duplicate \;
       displayName: Push NuGet package
-      inputs:
-        command: push
-        packagesToPush: $(Pipeline.Workspace)/packages/**/*.nupkg
-        nuGetFeedType: internal
-        publishVstsFeed: $(AZURE_ARTIFACTS_FEED_NAME)
-        allowPackageConflicts: true
+      env:
+        COLLECTION_URI: $(System.CollectionUri)
+        TEAM_PROJECT: $(System.TeamProject)
+        FEED_NAME: $(artifactsFeedName)
