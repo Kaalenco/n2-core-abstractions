@@ -6,8 +6,10 @@ namespace N2.Core.Identity;
 public sealed class WithPriority
 {
     [TestMethod]
-    public void Placeholder()
+    public void ValuesMatchExpectedIntegers()
     {
-        // TODO
+        Assert.AreEqual(0, (int)Priority.Low);
+        Assert.AreEqual(1, (int)Priority.Normal);
+        Assert.AreEqual(2, (int)Priority.High);
     }
 }

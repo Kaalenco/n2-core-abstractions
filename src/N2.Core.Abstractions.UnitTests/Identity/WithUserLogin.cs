@@ -6,8 +6,23 @@ namespace N2.Core.Identity;
 public sealed class WithUserLogin
 {
     [TestMethod]
-    public void Placeholder()
+    public void DefaultCtorSetsEmptyUsernameAndPassword()
     {
-        // TODO
+        UserLogin login = new();
+        Assert.AreEqual(string.Empty, login.Username);
+        Assert.AreEqual(string.Empty, login.Password);
+    }
+
+    [TestMethod]
+    public void PropertiesCanBeSet()
+    {
+        UserLogin login = new()
+        {
+            Username = "alice",
+            Password = "s3cr3t"
+        };
+
+        Assert.AreEqual("alice", login.Username);
+        Assert.AreEqual("s3cr3t", login.Password);
     }
 }

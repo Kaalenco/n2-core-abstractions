@@ -32,28 +32,6 @@ public sealed class WithUserAccessModel
     }
 
     [TestMethod]
-    public void Serialization_DateTimeProperties_KindIsPreserved()
-    {
-        // System.Text.Json round-trips DateTimeKind.Utc correctly (appends 'Z').
-        // DateTimeKind.Local becomes Unspecified on deserialize — use Utc in DTOs.
-        var utcValue = new DateTime(2024, 6, 15, 10, 30, 0, DateTimeKind.Utc);
-        var dto = new UserAccessModel
-        {
-            // TODO: set the DateTime property under test
-            //   SomeDateProperty = utcValue
-        };
-
-        var json   = JsonSerializer.Serialize(dto);
-        var result = JsonSerializer.Deserialize<UserAccessModel>(json);
-
-        Assert.IsNotNull(result);
-        // TODO: replace with actual DateTime property name
-        //   Assert.AreEqual(utcValue, result.SomeDateProperty);
-        //   Assert.AreEqual(DateTimeKind.Utc, result.SomeDateProperty.Kind);
-        Assert.Inconclusive("Replace TODOs with the actual DateTime property name.");
-    }
-
-    [TestMethod]
     public void Deserialization_EmptyJson_ReturnsDefaultInstance()
     {
         var result = JsonSerializer.Deserialize<UserAccessModel>("{}");

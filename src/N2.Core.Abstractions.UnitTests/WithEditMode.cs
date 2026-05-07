@@ -6,8 +6,12 @@ namespace N2.Core;
 public sealed class WithEditMode
 {
     [TestMethod]
-    public void Placeholder()
+    public void ValuesMatchExpectedIntegers()
     {
-        // TODO
+        Assert.AreEqual(0, (int)EditMode.Hide);
+        Assert.AreEqual(1, (int)EditMode.AddNew);
+        Assert.AreEqual(2, (int)EditMode.Modify);
+        Assert.AreEqual(3, (int)EditMode.Remove);
+        Assert.AreEqual(4, (int)EditMode.Replicate);
     }
 }
