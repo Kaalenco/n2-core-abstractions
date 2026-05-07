@@ -130,7 +130,7 @@ public sealed class WithAuthenticatedValue
     // Helpers
     // -------------------------------------------------------------------------
 
-    private string CreateValidToken(string value, DateTime expiry)
+    private static string CreateValidToken(string value, DateTime expiry)
     {
         return new AuthenticatedValue(System.Text.Encoding.UTF8.GetBytes(value), expiry)
             .ToTokenString(TestSecret);
