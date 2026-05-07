@@ -167,11 +167,22 @@ stages:
       env:
         Logging__LogLevel__Default: Error
 
+    - script: dotnet tool install --global dotnet-reportgenerator-globaltool
+      displayName: Install ReportGenerator
+
+    - script: |
+        reportgenerator \
+          -reports:"$(COVERAGE_DIR)/**/coverage.cobertura.xml" \
+          -targetdir:reports/coverage \
+          -reporttypes:"HtmlInline_AzurePipelines;Cobertura"
+      displayName: Generate HTML coverage report
+
     - task: PublishCodeCoverageResults@2
       displayName: Publish coverage to pipeline
       condition: always()
       inputs:
-        summaryFileLocation: $(COVERAGE_DIR)/**/coverage.cobertura.xml
+        summaryFileLocation: reports/coverage/Cobertura.xml
+        reportDirectory: reports/coverage
 
     - bash: pip install lizard
       displayName: Install lizard
