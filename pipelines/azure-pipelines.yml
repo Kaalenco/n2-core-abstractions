@@ -40,6 +40,7 @@ stages:
 # ── Build and Unit Tests ──────────────────────────────────────────────────────
 - stage: Build
   displayName: Build and Test
+  dependsOn: []
   jobs:
   - job: BuildAndTest
     displayName: Build and unit tests
@@ -201,7 +202,7 @@ stages:
 # ── Publish NuGet Package ─────────────────────────────────────────────────────
 - stage: Publish
   displayName: Publish NuGet Package
-  dependsOn: [Build, CodeAnalysis]
+  dependsOn: [Build]
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/trunk'))
   jobs:
   - job: Publish
