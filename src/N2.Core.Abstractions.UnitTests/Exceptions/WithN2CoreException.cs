@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using N2.Core.Commands;
 using N2.Core.Exceptions;
 
-namespace N2.Core.Abstractions.UnitTests.Exceptions;
+namespace N2.Core.Abstractions.Exceptions;
 
 [TestClass]
 public class WithN2CoreExceptionTests

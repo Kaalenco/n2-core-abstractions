@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using N2.Core.Commands;
 
-namespace N2.Core.Abstractions.UnitTests;
+namespace N2.Core.Abstractions;
 
 [TestClass]
 public class WithRequestResultFactories

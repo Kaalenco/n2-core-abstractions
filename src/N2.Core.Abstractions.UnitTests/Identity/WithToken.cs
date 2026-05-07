@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using N2.Core.Identity;
 
-namespace N2.Core.Abstractions.UnitTests.Identity;
+namespace N2.Core.Abstractions.Identity;
 
 [TestClass]
 public class WithToken

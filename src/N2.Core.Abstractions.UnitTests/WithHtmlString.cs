@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace N2.Core.Abstractions.UnitTests;
+namespace N2.Core.Abstractions;
 
 [TestClass]
 public class WithHtmlString

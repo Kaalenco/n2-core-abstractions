@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using N2.Core.Abstractions.Encryption;
 using N2.Core.SystemAbstractions;
 
-namespace N2.Core.Abstractions.UnitTests.Encryption;
+namespace N2.Core.Abstractions.Encryption;
 
 /// <summary>
 /// Provides unit tests for functionality related to authenticated values.
