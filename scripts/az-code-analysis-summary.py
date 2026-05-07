@@ -57,7 +57,7 @@ def read_coverage(coverage_dir: str) -> tuple[str, str]:
 
 
 def read_complexity(source_dir: str, exclude: str | None = None) -> tuple[list, int, float, float]:
-    cmd = ["lizard", source_dir, "--csv"]
+    cmd = [sys.executable, "-m", "lizard", source_dir, "--csv"]
     if exclude:
         cmd += ["-x", exclude]
     result = subprocess.run(cmd, capture_output=True, text=True)

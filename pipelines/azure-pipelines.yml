@@ -116,7 +116,7 @@ stages:
   - job: Analyse
     displayName: Coverage and complexity
     variables:
-      COVERAGE_DIR: $(Agent.TempDirectory)/Coverage
+      COVERAGE_DIR: $(Agent.TempDirectory)
     steps:
 
     - task: UseDotNet@2
@@ -164,7 +164,6 @@ stages:
           --verbosity normal
           --filter "TestCategory!=Integration"
           --collect:"XPlat Code Coverage"
-          --results-directory $(COVERAGE_DIR)
       env:
         Logging__LogLevel__Default: Error
 
