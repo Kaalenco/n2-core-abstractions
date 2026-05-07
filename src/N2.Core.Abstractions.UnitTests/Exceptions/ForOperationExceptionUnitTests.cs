@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace N2.Core.Exceptions;
 
 [TestClass]
-public sealed class WithContractException
+public sealed class ForOperationExceptionUnitTests
 {
     [TestMethod]
     public void Placeholder()
@@ -11,3 +11,4 @@ public sealed class WithContractException
         // TODO
     }
 }
+

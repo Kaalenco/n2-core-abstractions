@@ -6,7 +6,7 @@ using N2.Core.Exceptions;
 namespace N2.Core.Abstractions.Exceptions;
 
 [TestClass]
-public class WithN2CoreExceptionTests
+public class ForN2CoreExceptionUnitTests
 {
     [TestMethod]
     public void DefaultCtorSetsNotAcceptedStatusAndMessage()
