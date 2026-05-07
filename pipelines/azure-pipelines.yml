@@ -107,10 +107,101 @@ stages:
         targetPath: $(Build.ArtifactStagingDirectory)/packages
         artifact: nuget-packages
 
+# ── Code Analysis ────────────────────────────────────────────────────────────
+- stage: CodeAnalysis
+  displayName: Code Analysis
+  dependsOn: []
+  jobs:
+  - job: Analyse
+    displayName: Coverage and complexity
+    variables:
+      COVERAGE_DIR: $(Agent.TempDirectory)/Coverage
+    steps:
+
+    - task: UseDotNet@2
+      displayName: Setup .NET 8.0
+      inputs:
+        version: 8.0.x
+
+    - task: UseDotNet@2
+      displayName: Setup .NET 10.0
+      inputs:
+        version: 10.0.x
+
+    - task: Cache@2
+      displayName: Cache NuGet packages
+      inputs:
+        key: 'nuget | "$(Agent.OS)" | src/**/*.csproj'
+        restoreKeys: |
+          nuget | "$(Agent.OS)"
+        path: $(NUGET_PACKAGES)
+
+    - task: NuGetAuthenticate@1
+      displayName: Authenticate to Azure Artifacts
+
+    - task: DotNetCoreCLI@2
+      displayName: Restore dependencies
+      inputs:
+        command: restore
+        projects: src/**/*.csproj
+
+    - task: DotNetCoreCLI@2
+      displayName: Build
+      inputs:
+        command: build
+        projects: src/**/*.csproj
+        arguments: --no-restore
+
+    - task: DotNetCoreCLI@2
+      displayName: Run unit tests with coverage
+      inputs:
+        command: test
+        projects: src/**/*.UnitTests.csproj
+        arguments: >-
+          --no-build
+          --framework net8.0
+          --verbosity normal
+          --filter "TestCategory!=Integration"
+          --collect:"XPlat Code Coverage"
+          --results-directory $(COVERAGE_DIR)
+      env:
+        Logging__LogLevel__Default: Error
+
+    - task: PublishCodeCoverageResults@2
+      displayName: Publish coverage to pipeline
+      condition: always()
+      inputs:
+        summaryFileLocation: $(COVERAGE_DIR)/**/coverage.cobertura.xml
+
+    - bash: pip install lizard
+      displayName: Install lizard
+
+    - bash: |
+        mkdir -p reports/complexity
+        lizard src/ -x "*.UnitTests" -C 10 --html > reports/complexity/index.html
+      displayName: Generate complexity report
+
+    - bash: |
+        SUMMARY_FILE="$(Agent.TempDirectory)/code-analysis-summary.md"
+        PIPELINE_SUMMARY_FILE="$SUMMARY_FILE" python3 scripts/az-code-analysis-summary.py \
+          --source src/ \
+          --exclude "*.UnitTests" \
+          --coverage-dir $(COVERAGE_DIR)
+        echo "##vso[task.uploadsummary]$SUMMARY_FILE"
+      displayName: Write pipeline summary
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Upload analysis reports
+      condition: always()
+      inputs:
+        PathtoPublish: reports/
+        ArtifactName: code-analysis
+
 # ── Publish NuGet Package ─────────────────────────────────────────────────────
 - stage: Publish
   displayName: Publish NuGet Package
-  dependsOn: Build
+  dependsOn: [Build, CodeAnalysis]
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/trunk'))
   jobs:
   - job: Publish
@@ -129,14 +220,18 @@ stages:
       displayName: Authenticate to Azure Artifacts
 
     - script: |
+        set -euo pipefail
         ORG=$(echo "$COLLECTION_URI" | sed 's|https://dev.azure.com/||; s|/$||')
         PROJECT_ENCODED="${TEAM_PROJECT// /%20}"
         FEED_URL="https://pkgs.dev.azure.com/${ORG}/${PROJECT_ENCODED}/_packaging/${FEED_NAME}/nuget/v3/index.json"
         echo "Pushing to: $FEED_URL"
-        find "$(Pipeline.Workspace)/packages" -name "*.nupkg" -exec dotnet nuget push {} \
-          --source "$FEED_URL" \
-          --api-key AzureArtifacts \
-          --skip-duplicate \;
+        while IFS= read -r -d '' pkg; do
+          echo "Pushing: $(basename "$pkg")"
+          dotnet nuget push "$pkg" \
+            --source "$FEED_URL" \
+            --api-key AzureArtifacts \
+            --skip-duplicate
+        done < <(find "$(Pipeline.Workspace)/packages" -name "*.nupkg" -print0)
       displayName: Push NuGet package
       env:
         COLLECTION_URI: $(System.CollectionUri)
