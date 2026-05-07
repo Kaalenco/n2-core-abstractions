@@ -114,6 +114,19 @@ public sealed class WithAuthenticatedValue
     }
 
     // -------------------------------------------------------------------------
+    // FromTokenString — happy path variants
+    // -------------------------------------------------------------------------
+
+    [TestMethod]
+    public void FromTokenString_EmptyValue_RoundTripsCorrectly()
+    {
+        AuthenticatedValue original = new([], DateTime.UtcNow.AddHours(1));
+        string token = original.ToTokenString(TestSecret);
+        AuthenticatedValue result = AuthenticatedValue.FromTokenString(token, TestSecret, CurrentTime);
+        Assert.AreEqual(0, result.Value.Length);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

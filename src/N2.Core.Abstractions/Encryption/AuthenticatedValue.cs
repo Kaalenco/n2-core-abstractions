@@ -122,30 +122,41 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
             throw new ArgumentException("Time must not be null.", nameof(time));
         ValidateSecret(systemSecret);
 
-        // Base64url decode
-        var base64 = tokenString.Replace('-', '+').Replace('_', '/');
-        base64 += new string('=', (4 - base64.Length % 4) % 4);
+        byte[] encoded = DecodeBase64Url(tokenString);
 
-        byte[] encoded;
-        try { encoded = Convert.FromBase64String(base64); }
-        catch (FormatException ex) { throw new FormatException("Invalid token string: base64 decode failed.", ex); }
-
-        // Minimum: IV + one AES block (16 bytes minimum ciphertext) + MAC
+        // Minimum: IV + one AES block (16 bytes) + MAC
         if (encoded.Length < IvLength + 16 + MacLength)
             throw new FormatException("Invalid token string: too short.");
 
         var (encKey, macKey) = DeriveKeys(systemSecret);
+        var (iv, ciphertext) = SplitAndVerifyMac(encoded, macKey);
+        byte[] plaintext     = DecryptAesCbc(iv, ciphertext, encKey);
+        var (value, expiration) = ParsePlaintext(plaintext);
 
-        // Split: IV | ciphertext | MAC
+        if (expiration < time.UtcNow)
+            throw new CryptographicException("Token has expired.");
+
+        return new AuthenticatedValue(value, expiration);
+    }
+
+    private static byte[] DecodeBase64Url(string tokenString)
+    {
+        var base64 = tokenString.Replace('-', '+').Replace('_', '/');
+        base64 += new string('=', (4 - base64.Length % 4) % 4);
+        try { return Convert.FromBase64String(base64); }
+        catch (FormatException ex) { throw new FormatException("Invalid token string: base64 decode failed.", ex); }
+    }
+
+    private static (byte[] iv, byte[] ciphertext) SplitAndVerifyMac(byte[] encoded, byte[] macKey)
+    {
         int ciphertextLength = encoded.Length - IvLength - MacLength;
-        var iv         = new byte[IvLength];
-        var ciphertext = new byte[ciphertextLength];
+        var iv          = new byte[IvLength];
+        var ciphertext  = new byte[ciphertextLength];
         var embeddedMac = new byte[MacLength];
-        Buffer.BlockCopy(encoded, 0,                         iv,          0, IvLength);
-        Buffer.BlockCopy(encoded, IvLength,                  ciphertext,  0, ciphertextLength);
+        Buffer.BlockCopy(encoded, 0,                          iv,          0, IvLength);
+        Buffer.BlockCopy(encoded, IvLength,                   ciphertext,  0, ciphertextLength);
         Buffer.BlockCopy(encoded, IvLength + ciphertextLength, embeddedMac, 0, MacLength);
 
-        // Verify MAC before decrypting (Encrypt-then-MAC prevents padding oracle)
         var macInput = new byte[IvLength + ciphertextLength];
         Buffer.BlockCopy(iv,         0, macInput, 0,        IvLength);
         Buffer.BlockCopy(ciphertext, 0, macInput, IvLength, ciphertextLength);
@@ -157,11 +168,14 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
         if (!ConstantTimeEquals(embeddedMac, expectedMac))
             throw new CryptographicException("Token integrity check failed: MAC mismatch.");
 
-        // Decrypt — safe to proceed after MAC verification
-        // CA5401: IV is extracted from the authenticated token string and has already passed
-        // MAC verification above; it is the same random IV generated during ToTokenString.
+        return (iv, ciphertext);
+    }
+
+    // CA5401: IV is extracted from the authenticated token string and has already passed
+    // MAC verification in SplitAndVerifyMac; it is the same random IV generated during ToTokenString.
 #pragma warning disable CA5401
-        byte[] plaintext;
+    private static byte[] DecryptAesCbc(byte[] iv, byte[] ciphertext, byte[] encKey)
+    {
         try
         {
             using var aes = Aes.Create();
@@ -170,15 +184,17 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
             aes.Mode    = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
             using var decryptor = aes.CreateDecryptor();
-            plaintext = decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
+            return decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
         }
         catch (CryptographicException ex)
         {
             throw new CryptographicException("Token decryption failed.", ex);
         }
+    }
 #pragma warning restore CA5401
 
-        // Parse plaintext: [4 bytes value length][value bytes][8 bytes ticks]
+    private static (byte[] value, DateTime expiration) ParsePlaintext(byte[] plaintext)
+    {
         if (plaintext.Length < 4 + 8)
             throw new FormatException("Invalid token string: plaintext too short.");
 
@@ -192,11 +208,7 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
 
         var ticks      = BitConverter.ToInt64(plaintext, 4 + valueLength);
         var expiration = new DateTime(ticks, DateTimeKind.Utc);
-
-        if (expiration < time.UtcNow)
-            throw new CryptographicException("Token has expired.");
-
-        return new AuthenticatedValue(value, expiration);
+        return (value, expiration);
     }
 
     private static void ValidateSecret(byte[] systemSecret)
