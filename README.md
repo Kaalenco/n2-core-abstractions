@@ -1,4 +1,4 @@
-# n2-core
+# n2-core-abstractions
 
 [![Build Status](https://dev.azure.com/gjkaal/N2%20Vault%20services/_apis/build/status%2FN2.Core.Abstractions%20-%20Publish?branchName=trunk)](https://dev.azure.com/gjkaal/N2%20Vault%20services/_build/latest?definitionId=2&branchName=trunk)
 [![N2.Core.Abstractions package in vault-packages@Release feed in Azure Artifacts](https://feeds.dev.azure.com/gjkaal/3b3decf8-eba1-45d0-b47a-d9c1ce84f739/_apis/public/Packaging/Feeds/vault-packages@Release/Packages/5a9ef012-1b00-43cd-948b-d9483f3bfad7/Badge)](https://dev.azure.com/gjkaal/N2%20Vault%20services/_artifacts/feed/vault-packages@Release/NuGet/N2.Core.Abstractions?preferRelease=true)
