@@ -1,8 +1,7 @@
-# n2-core
+# n2-core-abstractions
 
-[![CodeQL Advanced](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/codeql.yml/badge.svg)](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/codeql.yml)
-[![.NET Build and test](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/dotnet.yml/badge.svg)](https://github.com/Kaalenco/n2-core-abstractions/actions/workflows/dotnet.yml)
-[![NuGet](https://img.shields.io/nuget/v/N2.Core.Abstractions.svg)](https://www.nuget.org/packages/N2.Core.Abstractions/)
+[![Build Status](https://dev.azure.com/gjkaal/N2%20Vault%20services/_apis/build/status%2FN2.Core.Abstractions%20-%20Publish?branchName=trunk)](https://dev.azure.com/gjkaal/N2%20Vault%20services/_build/latest?definitionId=2&branchName=trunk)
+[![N2.Core.Abstractions package in vault-packages@Release feed in Azure Artifacts](https://feeds.dev.azure.com/gjkaal/3b3decf8-eba1-45d0-b47a-d9c1ce84f739/_apis/public/Packaging/Feeds/vault-packages@Release/Packages/5a9ef012-1b00-43cd-948b-d9483f3bfad7/Badge)](https://dev.azure.com/gjkaal/N2%20Vault%20services/_artifacts/feed/vault-packages@Release/NuGet/N2.Core.Abstractions?preferRelease=true)
 
 `N2.Core.Abstractions` is a shared library of interfaces, abstractions, and lightweight models for .NET projects. It was created to eliminate the pattern of each project re-implementing the same foundational contracts — response envelopes, database context wrappers, user identity, command dispatching — in slightly different ways. By defining these once in a single package, projects can depend on a common vocabulary instead of duplicating it.
 
