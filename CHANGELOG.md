@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.1 — 2026-05-10
+
+Optimizations and other minor refactoring; no API surface changes.
+
 ## 1.7.0 — 2026-04-14
 
 ### Identity

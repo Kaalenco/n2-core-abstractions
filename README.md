@@ -44,6 +44,10 @@ A simple publish/subscribe mechanism for broadcasting change events within a pro
 
 A hierarchy of typed exceptions for common error scenarios: configuration problems, contract violations (pre/post-condition failures), missing elements, general operation failures, and unauthorised access. Using these rather than generic `Exception` or `InvalidOperationException` gives catch sites enough information to respond appropriately and produce consistent error responses.
 
+### Encryption utilities (`N2.Core.Abstractions.Encryption`)
+
+A small set of cryptographic utilities. `AuthenticatedValue` wraps an arbitrary byte payload with a mandatory expiration and serialises it to a compact base64url token using AES-256-CBC encryption and HMAC-SHA256 authentication (Encrypt-then-MAC). `EncryptionUtilities` provides helper methods such as generating cryptographically random keys.
+
 ### System abstractions (`N2.Core.SystemAbstractions`)
 
 An interface over system-level services (currently time) so that code depending on the current clock can be tested deterministically.
@@ -58,4 +62,4 @@ An interface over system-level services (currently time) so that code depending 
 
 ## Change log
 
-See [CHANGELOG.md](CHANGELOG.md) for the full history. Current version: **1.5.1**.
+See [CHANGELOG.md](CHANGELOG.md) for the full history. Current version: **1.7.1**.
