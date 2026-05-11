@@ -35,6 +35,10 @@ dotnet build src --no-restore --configuration Release
 dotnet test src --no-build --verbosity normal --filter "TestCategory!=Integration"
 ```
 
+The `TestCategory!=Integration` filter is a convention across all N2 libraries. Integration tests are tagged `[TestCategory("Integration")]` and may require external dependencies (a running database, service, or other infrastructure) that are not available in every environment. Excluding them by default makes the unit test run safe to run anywhere without setup.
+
+This repository currently has no integration tests, so the filter has no practical effect here — but it is included to stay consistent with the convention.
+
 ### Single test by name
 
 ```bash
