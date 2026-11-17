@@ -15,12 +15,17 @@ All changes below are breaking unless stated otherwise.
 ### Targets and packaging
 
 - **Breaking:** target frameworks are now `netstandard2.0`, `netstandard2.1`, `net10.0` and
-  `net11.0`. `net8.0` is dropped; .NET 8 and .NET 9 consumers resolve the `netstandard2.1` asset.
+  `net11.0`. `net8.0` is dropped; .NET 8 and .NET 9 consumers resolve the `netstandard2.1` asset
+  and get the 10.0.x `System.Text.Json`, `System.Text.Encodings.Web` and
+  `Microsoft.Extensions.Primitives` packages transitively.
 - `System.Text.Json` and `System.Text.Encodings.Web` are referenced only for the `netstandard`
-  targets (in-box on net10.0+). `Microsoft.Extensions.Primitives` stays on every target
-  (`StringValues` is not part of `Microsoft.NETCore.App`).
+  targets (in-box on net10.0+). `Microsoft.Extensions.Primitives` (`StringValues`) is referenced
+  for the `netstandard` targets and `net10.0`; it is in-box in `Microsoft.NETCore.App` from
+  net11.0, so `net11.0` has no package reference (avoids NU1510 under package pruning).
 - Package updates: `System.IO.Abstractions` 22.1.0 -> 23.0.1; `System.Text.Json`,
-  `System.Text.Encodings.Web`, `Microsoft.Extensions.Primitives` 10.0.5 -> 11.0.0.
+  `System.Text.Encodings.Web`, `Microsoft.Extensions.Primitives` 10.0.5 -> 10.0.15. These stay
+  on the 10.0.x band so net10 consumers (ASP.NET Core 10 shared framework) are not lifted to
+  11.0.0 assemblies.
 - The package is published to nuget.org again, in addition to the `vault-packages` Azure
   Artifacts feed.
 - Pipeline: .NET SDK 11.0.x replaces 8.0.x (10.0.x kept); coverage runs on net10.0.

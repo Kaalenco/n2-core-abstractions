@@ -237,6 +237,12 @@ stages:
         PROJECT_ENCODED="${TEAM_PROJECT// /%20}"
         FEED_URL="https://pkgs.dev.azure.com/${ORG}/${PROJECT_ENCODED}/_packaging/${FEED_NAME}/nuget/v3/index.json"
         echo "Pushing to: $FEED_URL"
+        PKG_COUNT=$(find "$(Pipeline.Workspace)/packages" -name "*.nupkg" | wc -l)
+        if [[ "$PKG_COUNT" -eq 0 ]]; then
+          echo "##vso[task.logissue type=error]No *.nupkg found in $(Pipeline.Workspace)/packages; nothing to push."
+          exit 1
+        fi
+        echo "Packages to push: $PKG_COUNT"
         while IFS= read -r -d '' pkg; do
           echo "Pushing: $(basename "$pkg")"
           dotnet nuget push "$pkg" \
@@ -259,6 +265,12 @@ stages:
           echo "##vso[task.logissue type=error]Secret pipeline variable PACKAGE_N2 (nuget.org API key) is not set."
           exit 1
         fi
+        PKG_COUNT=$(find "$(Pipeline.Workspace)/packages" -name "*.nupkg" | wc -l)
+        if [[ "$PKG_COUNT" -eq 0 ]]; then
+          echo "##vso[task.logissue type=error]No *.nupkg found in $(Pipeline.Workspace)/packages; nothing to push to nuget.org."
+          exit 1
+        fi
+        echo "Packages to push: $PKG_COUNT"
         while IFS= read -r -d '' pkg; do
           echo "Pushing to nuget.org: $(basename "$pkg")"
           dotnet nuget push "$pkg" \

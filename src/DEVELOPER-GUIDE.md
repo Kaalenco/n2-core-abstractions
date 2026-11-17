@@ -6,10 +6,10 @@ This document explains how to build, test, and maintain the project locally and 
 
 ```
 src/
-├── N2.Core.Abstractions/               # Main library (multi-targeted: netstandard2.0, netstandard2.1, net10.0, net11.0)
-├── N2.Core.Abstractions.UnitTests/     # Unit tests (MSTest)
-├── Directory.Build.props               # Shared build settings (warnings as errors, analyzers)
-└── N2.Core.Abstractions.sln
+|-- N2.Core.Abstractions/               # Main library (multi-targeted: netstandard2.0, netstandard2.1, net10.0, net11.0)
+|-- N2.Core.Abstractions.UnitTests/     # Unit tests (MSTest)
+|-- Directory.Build.props               # Shared build settings (warnings as errors, analyzers)
+`-- N2.Core.Abstractions.sln
 ```
 
 ## Building
