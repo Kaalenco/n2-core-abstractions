@@ -77,10 +77,11 @@ public interface IDataRepository<T> : IDisposable
     /// <param name="record">
     /// The item.
     /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
     /// <![CDATA[Task<T>]]>
     /// </returns>
-    Task<T> CreateAndReturn(T record);
+    Task<T> CreateAndReturn(T record, CancellationToken cancellationToken);
 
     /// <summary>
     /// Updates the record.
@@ -107,10 +108,11 @@ public interface IDataRepository<T> : IDisposable
     /// <param name="record">
     /// The record.
     /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
     /// <![CDATA[Task<T>]]>
     /// </returns>
-    Task<T> UpdateAndReturn(int id, T record);
+    Task<T> UpdateAndReturn(int id, T record, CancellationToken cancellationToken);
 
     /// <summary>
     /// Deletes the record identified by its primary key.

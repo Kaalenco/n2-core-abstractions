@@ -38,7 +38,7 @@ public interface IHttpClient
     /// Default response for a delete would be a '204 No-Content'
     /// indicating a successful deletion of the resource.
     /// </returns>
-    Task<IHttpResult> DeleteAsync(string path, CancellationToken token);
+    Task<IHttpResult> Delete(string path, CancellationToken token);
 
     /// <summary>
     /// Performs a GET operation relative from the base address.
@@ -47,7 +47,7 @@ public interface IHttpClient
     /// <param name="path">The GET endpoint, relative to the base address.</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
     /// <returns></returns>
-    Task<IHttpResult<TResponse>> GetRelativeAsync<TResponse>(string path, CancellationToken token);
+    Task<IHttpResult<TResponse>> GetRelative<TResponse>(string path, CancellationToken token);
 
     /// <summary>
     /// Read a json document from a resource.
@@ -55,7 +55,7 @@ public interface IHttpClient
     /// <param name="resourcePath">The fully unified resource indicator.</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
     /// <returns></returns>
-    Task<JsonDocument> ReadJsonDocumentAsync(Uri resourcePath, CancellationToken token);
+    Task<JsonDocument> ReadJsonDocument(Uri resourcePath, CancellationToken token);
 
     /// <summary>
     /// Performs a GET operation using a full resource path.
@@ -64,7 +64,7 @@ public interface IHttpClient
     /// <param name="resourcePath">The fully unified resource indicator.</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
     /// <returns></returns>
-    Task<IHttpResult<TResource>> GetFromUriAsync<TResource>(Uri resourcePath, CancellationToken token);
+    Task<IHttpResult<TResource>> GetFromUri<TResource>(Uri resourcePath, CancellationToken token);
 
     /// <summary>
     /// Performs a POST operation to a given relative path and deserializes
@@ -77,7 +77,7 @@ public interface IHttpClient
     /// <param name="value">The body of the message</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
     /// <returns>An Http result (<see cref="IHttpResult" />)</returns>
-    Task<IHttpResult<TResponse>> PostRelativeAsync<TRequest, TResponse>(string path, TRequest value, CancellationToken token);
+    Task<IHttpResult<TResponse>> PostRelative<TRequest, TResponse>(string path, TRequest value, CancellationToken token);
 
     /// <summary>
     /// Performs a POST operation to a given relative path and deserializes
@@ -89,7 +89,7 @@ public interface IHttpClient
     /// <param name="value">The body of the message</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
     /// <returns>An Http result (<see cref="IHttpResult" />)</returns>
-    Task<IHttpResult<TResource>> PostResourceAsync<TResource>(Uri resourcePath, TResource value, CancellationToken token);
+    Task<IHttpResult<TResource>> PostResource<TResource>(Uri resourcePath, TResource value, CancellationToken token);
 
     /// <summary>
     /// Performs a POST operation to a given resource path and returns the http response message.
@@ -101,7 +101,7 @@ public interface IHttpClient
     /// <param name="content">The HTTP content of the message</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
     /// <returns>An Http result (<see cref="HttpResponseMessage" />)</returns>
-    Task<HttpResponseMessage> PostAsync(Uri resourcePath, HttpContent content, CancellationToken token);
+    Task<HttpResponseMessage> Post(Uri resourcePath, HttpContent content, CancellationToken token);
 
     /// <summary>
     /// Performs a GET operation to a given resource path and returns the http response message.
@@ -111,7 +111,7 @@ public interface IHttpClient
     /// </summary>
     /// <param name="resourcePath">The full unified resource indicator.</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
-    Task<HttpResponseMessage> GetAsync(Uri resourcePath, CancellationToken token);
+    Task<HttpResponseMessage> GetResponseMessage(Uri resourcePath, CancellationToken token);
 
     /// <summary>
     /// Performs a PUT operation to a given relative path and deserializes
@@ -124,7 +124,7 @@ public interface IHttpClient
     /// <param name="value">The body of the message</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
     /// <returns>An Http result (<see cref="IHttpResult" />)</returns>
-    Task<IHttpResult<TResponse>> PutRelativeAsync<TRequest, TResponse>(string path, TRequest value, CancellationToken token);
+    Task<IHttpResult<TResponse>> PutRelative<TRequest, TResponse>(string path, TRequest value, CancellationToken token);
 
     /// <summary>
     /// Performs a PUT operation to a given relative path and deserializes
@@ -136,5 +136,5 @@ public interface IHttpClient
     /// <param name="value">The body of the message</param>
     /// <param name="token">A cancellation token to cancel the request.</param>
     /// <returns>An Http result (<see cref="IHttpResult" />)</returns>
-    Task<IHttpResult<TResource>> PutResourceAsync<TResource>(Uri resourcePath, TResource value, CancellationToken token);
+    Task<IHttpResult<TResource>> PutResource<TResource>(Uri resourcePath, TResource value, CancellationToken token);
 }

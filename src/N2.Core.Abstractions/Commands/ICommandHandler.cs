@@ -84,9 +84,10 @@ public interface ICommandHandler<TQ, TA> : ICommandHandler<TQ>
     /// <param name="request">
     /// The request.
     /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
     /// </returns>
-    Task<TA> WaitForAsync(TQ request);
+    Task<TA> WaitFor(TQ request, CancellationToken cancellationToken);
 }
 
 /// <summary>

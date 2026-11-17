@@ -17,17 +17,19 @@ public interface IIdentityManager
     /// <param name="refresh">
     /// The refresh token.
     /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
     /// </returns>
-    Task<Guid> RefreshUserToken(Guid refresh);
+    Task<Guid> RefreshUserToken(Guid refresh, CancellationToken cancellationToken);
 
     /// <summary>
     /// Logon with a user name and password. The password is validated by the authentication service.
     /// </summary>
     /// <param name="userName"></param>
     /// <param name="password"></param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns></returns>
-    Task<Guid> LogonUser(string userName, string password);
+    Task<Guid> LogonUser(string userName, string password, CancellationToken cancellationToken);
 
     /// <summary>
     /// Remove all sessions for the user in the specified scope.
@@ -38,9 +40,10 @@ public interface IIdentityManager
     /// <param name="scope">
     /// The scope for the logoff.
     /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
     /// </returns>
-    Task<ICommandResponse> LogoffUser(Guid refresh, string scope);
+    Task<ICommandResponse> LogoffUser(Guid refresh, string scope, CancellationToken cancellationToken);
 
     /// <summary>
     /// Register a refresh token for the user.
@@ -60,9 +63,10 @@ public interface IIdentityManager
     /// <param name="tokenTimeout">
     /// The date and time for the token to lose its validation.
     /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
     /// </returns>
-    Task<ICommandResponse> RegisterRefreshToken(Guid sid, string audience, string scope, Guid refreshToken, DateTime tokenTimeout);
+    Task<ICommandResponse> RegisterRefreshToken(Guid sid, string audience, string scope, Guid refreshToken, DateTime tokenTimeout, CancellationToken cancellationToken);
 
     /// <summary>
     /// Find the claims in the identity repository
@@ -76,10 +80,11 @@ public interface IIdentityManager
     /// <param name="scope">
     /// The scope for the claimset
     /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
     /// A list of claims
     /// </returns>
-    Task<Claim[]> GetClaims(Guid sid, string audience, string scope);
+    Task<Claim[]> GetClaims(Guid sid, string audience, string scope, CancellationToken cancellationToken);
 
     /// <summary>
     /// Logon with a user name and a validated secret. The secret is validated by the authentication service.
@@ -88,9 +93,10 @@ public interface IIdentityManager
     /// </param>
     /// <param name="secret">
     /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
     /// </returns>
-    Task<Guid> LogonUserWithSecret(string userName, string secret);
+    Task<Guid> LogonUserWithSecret(string userName, string secret, CancellationToken cancellationToken);
 
     /// <summary>
     /// Retrieve the user secret for the specified scope.
@@ -99,9 +105,10 @@ public interface IIdentityManager
     /// </param>
     /// <param name="scope">
     /// </param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
     /// </returns>
-    Task<ICommandResponse<string>> GetUserSecret(string userName, string scope);
+    Task<ICommandResponse<string>> GetUserSecret(string userName, string scope, CancellationToken cancellationToken);
 
     /// <summary>
     /// Get the current user identifier.

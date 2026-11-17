@@ -17,7 +17,7 @@ public interface IHttpResponse
     void ClearHeaders();
     void SetHeader(string key, string values);
 
-    Task WriteAsync(string content, CancellationToken cancellationToken = default);
-    Task WriteAsync(byte[] content, CancellationToken cancellationToken = default);
-    Task WriteAsJsonAsync<T>(T content, JsonSerializerOptions options, CancellationToken cancellationToken = default);
+    Task Write(string content, CancellationToken cancellationToken);
+    Task Write(byte[] content, CancellationToken cancellationToken);
+    Task WriteAsJson<T>(T content, JsonSerializerOptions options, CancellationToken cancellationToken);
 }

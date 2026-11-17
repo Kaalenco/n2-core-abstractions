@@ -12,11 +12,11 @@ public interface ICoreDataContext
 
     void AddRecord<T>(T model) where T : class;
 
-    Task<(ResponseStatus status, string message)> DeleteAsync<T>(Guid publicId) where T : class;
+    Task<(ResponseStatus status, string message)> Delete<T>(Guid publicId, CancellationToken cancellationToken) where T : class;
 
-    Task<T?> FindRecordAsync<T>(Guid publicId) where T : class;
+    Task<T?> FindRecord<T>(Guid publicId, CancellationToken cancellationToken) where T : class;
 
-    Task<List<KeyValuePair<string, string>>> GetSelectListAsync(string tableName);
+    Task<List<KeyValuePair<string, string>>> GetSelectList(string tableName, CancellationToken cancellationToken);
 
     IQueryable<IChangeLog> ChangeLogs { get; }
 }

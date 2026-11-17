@@ -10,7 +10,7 @@ namespace N2.Core.Entity;
 /// </summary>
 public interface ICoreDataContextFactory<TContext> where TContext : ICoreDataContext
 {
-    Task<TContext> CreateAsync(string connectionName);
+    Task<TContext> Create(string connectionName, CancellationToken cancellationToken);
 
-    Task<TContext> CreateAsync();
+    Task<TContext> Create(CancellationToken cancellationToken);
 }

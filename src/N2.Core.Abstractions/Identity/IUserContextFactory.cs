@@ -2,5 +2,5 @@
 
 public interface IUserContextFactory
 {
-    Task<IUserContext> CreateAsync();
+    Task<IUserContext> Create(CancellationToken cancellationToken);
 }

@@ -2,9 +2,9 @@
 
 public interface IEmailService
 {
-    Task<int> SendTestEmailAsync();
-    Task<int> SendEmailAsync(string senderAddress, string recipientAddress, string subject, string htmlContent, string plainTextContent);
-    Task<int> SendEmailAsync(string recipientAddress, string subject, string htmlContent);
+    Task<int> SendTestEmail(CancellationToken cancellationToken);
+    Task<int> SendEmail(string senderAddress, string recipientAddress, string subject, string htmlContent, string plainTextContent, CancellationToken cancellationToken);
+    Task<int> SendEmail(string recipientAddress, string subject, string htmlContent, CancellationToken cancellationToken);
 }
 
 public interface ICryptoService

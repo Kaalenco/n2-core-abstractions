@@ -1,5 +1,107 @@
 # Changelog
 
+## 2.0.0 - 2026-11-17
+
+Major release. Every asynchronous member takes a required `CancellationToken`, the `Async`
+suffix is gone from all member names, and the target frameworks move to .NET 10 / .NET 11.
+All changes below are breaking unless stated otherwise.
+
+### Convention
+
+- Every member returning `Task`, `ValueTask` or `IAsyncEnumerable` takes a `CancellationToken`
+  as its last parameter. The parameter is required: no default value and no overload without it.
+- No member name ends in `Async`.
+
+### Targets and packaging
+
+- **Breaking:** target frameworks are now `netstandard2.0`, `netstandard2.1`, `net10.0` and
+  `net11.0`. `net8.0` is dropped; .NET 8 and .NET 9 consumers resolve the `netstandard2.1` asset.
+- `System.Text.Json` and `System.Text.Encodings.Web` are referenced only for the `netstandard`
+  targets (in-box on net10.0+). `Microsoft.Extensions.Primitives` stays on every target
+  (`StringValues` is not part of `Microsoft.NETCore.App`).
+- Package updates: `System.IO.Abstractions` 22.1.0 -> 23.0.1; `System.Text.Json`,
+  `System.Text.Encodings.Web`, `Microsoft.Extensions.Primitives` 10.0.5 -> 11.0.0.
+- The package is published to nuget.org again, in addition to the `vault-packages` Azure
+  Artifacts feed.
+- Pipeline: .NET SDK 11.0.x replaces 8.0.x (10.0.x kept); coverage runs on net10.0.
+
+### Commands (`N2.Core.Commands`)
+
+- `ICommandHandler<TQ, TA>.WaitForAsync(TQ)` -> `WaitFor(TQ, CancellationToken)`
+
+### Entity (`N2.Core.Entity`)
+
+- `IUnitOfWork.Complete()` -> `Complete(CancellationToken)`
+- `ICoreDataContext.DeleteAsync<T>(Guid)` -> `Delete<T>(Guid, CancellationToken)`
+- `ICoreDataContext.FindRecordAsync<T>(Guid)` -> `FindRecord<T>(Guid, CancellationToken)`
+- `ICoreDataContext.GetSelectListAsync(string)` -> `GetSelectList(string, CancellationToken)`
+- `ICoreDataContextFactory<TContext>.CreateAsync(string)` -> `Create(string, CancellationToken)`
+- `ICoreDataContextFactory<TContext>.CreateAsync()` -> `Create(CancellationToken)`
+- `IDataRepository<T>.CreateAndReturn(T)` -> `CreateAndReturn(T, CancellationToken)`
+- `IDataRepository<T>.UpdateAndReturn(int, T)` -> `UpdateAndReturn(int, T, CancellationToken)`
+- `IDesignComponent<TList, TDetails>.SaveItemAsync(TDetails, IUserContext?)` -> `SaveItem(TDetails, IUserContext?, CancellationToken)`
+- `IDesignComponent<TList, TDetails>.RemoveItemAsync(Guid, IUserContext?)` -> `RemoveItem(Guid, IUserContext?, CancellationToken)`
+- `IDesignComponent<TList, TDetails>.InitializeModelAsync(string?, IUserContext?)` -> `InitializeModel(string?, IUserContext?, CancellationToken)`
+- `IDesignComponent<TList, TDetails>.LoadItemsAsync(PagingInfo, IUserContext?)` -> `LoadItems(PagingInfo, IUserContext?, CancellationToken)`
+- `IDesignComponent<TList, TDetails>.ReadFromDatabaseAsync(Guid, IUserContext?)` -> `ReadFromDatabase(Guid, IUserContext?, CancellationToken)`
+
+### Document management (`N2.Core.Dms`)
+
+- `IDocumentRepository.CompleteAsync(IUserContext, CancellationToken)` -> `Complete(IUserContext, CancellationToken)`
+- `IDocumentRepository.FindDocumentAsync(...)` (4 overloads) -> `FindDocument(...)`, parameters unchanged
+- `IDocumentService.FindDocumentsAsync(string, IEnumerable<string>, string, bool)` -> `FindDocuments(string, IEnumerable<string>, string, bool, CancellationToken)`
+- `IDocumentService.DeleteDocumentAsync(Guid)` -> `DeleteDocument(Guid, CancellationToken)`
+- `IDocumentService.SaveDocumentAsync(Stream, DocumentInformation)` -> `SaveDocument(Stream, DocumentInformation, CancellationToken)`
+- `IDocumentService.UpdateDocumentAsync(Guid, DocumentInformation)` -> `UpdateDocument(Guid, DocumentInformation, CancellationToken)`
+- `IDocumentService.GetDocumentInformationAsync(Guid)` -> `GetDocumentInformation(Guid, CancellationToken)`
+
+### HTTP (`N2.Core.Http`)
+
+- `IHttpClient.DeleteAsync` -> `Delete`
+- `IHttpClient.GetRelativeAsync<TResponse>` -> `GetRelative<TResponse>`
+- `IHttpClient.ReadJsonDocumentAsync` -> `ReadJsonDocument`
+- `IHttpClient.GetFromUriAsync<TResource>` -> `GetFromUri<TResource>`
+- `IHttpClient.PostRelativeAsync<TRequest, TResponse>` -> `PostRelative<TRequest, TResponse>`
+- `IHttpClient.PostResourceAsync<TResource>` -> `PostResource<TResource>`
+- `IHttpClient.PostAsync(Uri, HttpContent, CancellationToken)` -> `Post(Uri, HttpContent, CancellationToken)`
+- `IHttpClient.GetAsync(Uri, CancellationToken)` -> `GetResponseMessage(Uri, CancellationToken)`
+  (not `Get`: that is a reserved keyword in Visual Basic, analyzer CA1716)
+- `IHttpClient.PutRelativeAsync<TRequest, TResponse>` -> `PutRelative<TRequest, TResponse>`
+- `IHttpClient.PutResourceAsync<TResource>` -> `PutResource<TResource>`
+- `IHttpRequest.ReadAsStringAsync(CancellationToken = default)` -> `ReadAsString(CancellationToken)`; the token is now required
+- `IHttpResponse.WriteAsync(string, CancellationToken = default)` -> `Write(string, CancellationToken)`; the token is now required
+- `IHttpResponse.WriteAsync(byte[], CancellationToken = default)` -> `Write(byte[], CancellationToken)`; the token is now required
+- `IHttpResponse.WriteAsJsonAsync<T>(T, JsonSerializerOptions, CancellationToken = default)` -> `WriteAsJson<T>(T, JsonSerializerOptions, CancellationToken)`; the token is now required
+
+### Identity (`N2.Core.Identity`)
+
+- `IAuthenticator.AuthenticateAsync(IUserLogin)` -> `Authenticate(IUserLogin, CancellationToken)`
+- `IUserContextFactory.CreateAsync()` -> `Create(CancellationToken)`
+- `IIdentityManager.RefreshUserToken(Guid)` -> `RefreshUserToken(Guid, CancellationToken)`
+- `IIdentityManager.LogonUser(string, string)` -> `LogonUser(string, string, CancellationToken)`
+- `IIdentityManager.LogoffUser(Guid, string)` -> `LogoffUser(Guid, string, CancellationToken)`
+- `IIdentityManager.RegisterRefreshToken(Guid, string, string, Guid, DateTime)` -> `RegisterRefreshToken(Guid, string, string, Guid, DateTime, CancellationToken)`
+- `IIdentityManager.GetClaims(Guid, string, string)` -> `GetClaims(Guid, string, string, CancellationToken)`
+- `IIdentityManager.LogonUserWithSecret(string, string)` -> `LogonUserWithSecret(string, string, CancellationToken)`
+- `IIdentityManager.GetUserSecret(string, string)` -> `GetUserSecret(string, string, CancellationToken)`
+- `IUserManager<TUser>` (parameters unchanged, token already present): `CanSignInAsync` -> `CanSignIn`,
+  `ConfirmEmailAsync` -> `ConfirmEmail`, `CreateAsync` -> `Create`, `CreateRoleAsync` -> `CreateRole`,
+  `DeleteAsync` -> `Delete`, `FindByEmailAsync` -> `FindByEmail`, `FindByIdAsync` -> `FindById`,
+  `FindByNameAsync` -> `FindByName`, `GenerateConfirmationTokenAsync` -> `GenerateConfirmationToken`,
+  `GetRolesAsync` -> `GetRoles`, `GetUserIdAsync` -> `GetUserId`, `IsInRoleAsync` -> `IsInRole`,
+  `RemoveFromRoleAsync` -> `RemoveFromRole`, `AddToRoleAsync` -> `AddToRole`, `RemoveRoleAsync` -> `RemoveRole`,
+  `RoleExistsAsync` -> `RoleExists`, `SetEmailAsync` -> `SetEmail`, `SetUserNameAsync` -> `SetUserName`,
+  `ValidateAsync` -> `Validate`, `ValidateMultifactorAsync` -> `ValidateMultifactor`,
+  `SetMultifactorAsync` -> `SetMultifactor`
+
+### Core (`N2.Core`)
+
+- `IAzureFunctionClient.CallAsync<TQ, TA>(string, TQ, CancellationToken)` -> `CallFunction<TQ, TA>(string, TQ, CancellationToken)`
+  (not `Call`: that is a reserved keyword in Visual Basic, analyzer CA1716)
+- `IEmailService.SendTestEmailAsync()` -> `SendTestEmail(CancellationToken)`
+- `IEmailService.SendEmailAsync(string, string, string, string, string)` -> `SendEmail(string, string, string, string, string, CancellationToken)`
+- `IEmailService.SendEmailAsync(string, string, string)` -> `SendEmail(string, string, string, CancellationToken)`
+
 ## 1.7.1 — 2026-05-10
 
 Optimizations and other minor refactoring; no API surface changes.

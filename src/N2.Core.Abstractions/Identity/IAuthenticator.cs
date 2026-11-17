@@ -2,5 +2,5 @@
 
 public interface IAuthenticator
 {
-    Task<IUserContext?> AuthenticateAsync(IUserLogin userLogin);
+    Task<IUserContext?> Authenticate(IUserLogin userLogin, CancellationToken cancellationToken);
 }

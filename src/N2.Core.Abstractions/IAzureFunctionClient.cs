@@ -2,5 +2,5 @@
 
 public interface IAzureFunctionClient
 {
-    Task<TA?> CallAsync<TQ, TA>(string functionPath, TQ request, CancellationToken cancellationToken);
+    Task<TA?> CallFunction<TQ, TA>(string functionPath, TQ request, CancellationToken cancellationToken);
 }

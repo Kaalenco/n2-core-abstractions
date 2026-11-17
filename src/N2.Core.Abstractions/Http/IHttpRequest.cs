@@ -22,5 +22,5 @@ public interface IHttpRequest
     string Method { get; }
     IEnumerable<KeyValuePair<string, StringValues>>? Query { get; }
 
-    Task<string> ReadAsStringAsync(CancellationToken cancellationToken = default);
+    Task<string> ReadAsString(CancellationToken cancellationToken);
 }

@@ -5,13 +5,14 @@ namespace N2.Core.Dms;
 /// </summary>
 public interface IDocumentService
 {
-    Task<IEnumerable<DocumentInformation>> FindDocumentsAsync(
+    Task<IEnumerable<DocumentInformation>> FindDocuments(
         string search,
         IEnumerable<string> forRoles,
         string processName,
-        bool showInactiveDocuments);
-    Task<(bool success, string message)> DeleteDocumentAsync(Guid documentIdentifier);
-    Task<(bool success, DocumentInformation document)> SaveDocumentAsync(Stream streamedFileContent, DocumentInformation formData);
-    Task<(bool success, DocumentInformation document)> UpdateDocumentAsync(Guid documentIdentifier, DocumentInformation formData);
-    Task<(bool success, DocumentInformation document)> GetDocumentInformationAsync(Guid documentIdentifier);
+        bool showInactiveDocuments,
+        CancellationToken cancellationToken);
+    Task<(bool success, string message)> DeleteDocument(Guid documentIdentifier, CancellationToken cancellationToken);
+    Task<(bool success, DocumentInformation document)> SaveDocument(Stream streamedFileContent, DocumentInformation formData, CancellationToken cancellationToken);
+    Task<(bool success, DocumentInformation document)> UpdateDocument(Guid documentIdentifier, DocumentInformation formData, CancellationToken cancellationToken);
+    Task<(bool success, DocumentInformation document)> GetDocumentInformation(Guid documentIdentifier, CancellationToken cancellationToken);
 }

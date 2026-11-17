@@ -6,7 +6,7 @@ This document explains how to build, test, and maintain the project locally and 
 
 ```
 src/
-├── N2.Core.Abstractions/               # Main library (multi-targeted: netstandard2.0, netstandard2.1, net8.0, net10.0)
+├── N2.Core.Abstractions/               # Main library (multi-targeted: netstandard2.0, netstandard2.1, net10.0, net11.0)
 ├── N2.Core.Abstractions.UnitTests/     # Unit tests (MSTest)
 ├── Directory.Build.props               # Shared build settings (warnings as errors, analyzers)
 └── N2.Core.Abstractions.sln
@@ -59,7 +59,7 @@ Triggers on push and PR to `trunk` when files under `src/N2.*/**` change. Commit
 | 2 | **Code Analysis** | push + PR to `trunk` (parallel with Build) |
 | 3 | **Publish** | push to `trunk` only, after Build passes |
 
-The Publish stage downloads the `.nupkg` artifact from the Build stage and pushes it to the Azure Artifacts feed. Re-pushing an existing version is a no-op (`--skip-duplicate`).
+The Publish stage downloads the `.nupkg` artifact from the Build stage and pushes it to the Azure Artifacts feed and to nuget.org. Re-pushing an existing version is a no-op (`--skip-duplicate`).
 
 ### Pipeline variables
 
@@ -67,6 +67,7 @@ The Publish stage downloads the `.nupkg` artifact from the Build stage and pushe
 |----------|-------------|-------|
 | `artifactsFeedName` | Azure Artifacts feed name | `vault-packages` |
 | `buildConfiguration` | MSBuild configuration | `Release` |
+| `PACKAGE_N2` | nuget.org API key; secret variable, defined in the Azure DevOps pipeline settings (not in the YAML). The nuget.org push fails when it is missing. | (secret) |
 
 ## Regular maintenance
 
@@ -76,20 +77,20 @@ The pipeline pins specific Azure DevOps task major versions (e.g. `DotNetCoreCLI
 
 ### .NET SDK targets
 
-The library targets `netstandard2.0`, `netstandard2.1`, `net8.0`, and `net10.0`. When a .NET version reaches end-of-life:
+The library targets `netstandard2.0`, `netstandard2.1`, `net10.0`, and `net11.0`. When a .NET version reaches end-of-life:
 1. Remove its `<TargetFramework>` entry from `N2.Core.Abstractions.csproj`.
 2. Remove the matching `UseDotNet@2` step from the pipeline.
 
-The `netstandard` targets are built by the .NET 8 and .NET 10 SDKs and do not require separate setup steps.
+The `netstandard` targets are built by the .NET 10 and .NET 11 SDKs and do not require separate setup steps.
 
 ### NuGet package version
 
 The package version is set in `N2.Core.Abstractions/N2.Core.Abstractions.csproj`:
 
 ```xml
-<PackageVersion>1.7.1</PackageVersion>
-<AssemblyVersion>1.7.1</AssemblyVersion>
-<ProductVersion>1.7.1</ProductVersion>
+<PackageVersion>2.0.0</PackageVersion>
+<AssemblyVersion>2.0.0</AssemblyVersion>
+<ProductVersion>2.0.0</ProductVersion>
 ```
 
 Bump all three values together before merging a release to `trunk`.
