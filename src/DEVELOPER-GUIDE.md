@@ -59,7 +59,7 @@ Triggers on push and PR to `trunk` when files under `src/N2.*/**` change. Commit
 | 2 | **Code Analysis** | push + PR to `trunk` (parallel with Build) |
 | 3 | **Publish** | push to `trunk` only, after Build passes |
 
-The Publish stage downloads the `.nupkg` artifact from the Build stage and pushes it to the Azure Artifacts feed and to nuget.org. Re-pushing an existing version is a no-op (`--skip-duplicate`).
+The Publish stage downloads the `.nupkg` artifact from the Build stage and pushes it to the Azure Artifacts feed. Re-pushing an existing version is a no-op (`--skip-duplicate`).
 
 ### Pipeline variables
 
@@ -67,7 +67,6 @@ The Publish stage downloads the `.nupkg` artifact from the Build stage and pushe
 |----------|-------------|-------|
 | `artifactsFeedName` | Azure Artifacts feed name | `vault-packages` |
 | `buildConfiguration` | MSBuild configuration | `Release` |
-| `PACKAGE_N2` | nuget.org API key; secret variable, defined in the Azure DevOps pipeline settings (not in the YAML). The nuget.org push fails when it is missing. | (secret) |
 
 ## Regular maintenance
 

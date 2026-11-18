@@ -49,7 +49,7 @@ public sealed class WithAsyncMemberConvention
         Assert.AreEqual(string.Empty, string.Join(Environment.NewLine, violations));
     }
 
-    private static IEnumerable<Type> PublicTypes()
+    private static Type[] PublicTypes()
         => typeof(EditMode).Assembly.GetExportedTypes();
 
     private static IEnumerable<MethodInfo> PublicMethods()

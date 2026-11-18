@@ -26,8 +26,8 @@ All changes below are breaking unless stated otherwise.
   `System.Text.Encodings.Web`, `Microsoft.Extensions.Primitives` 10.0.5 -> 10.0.15. These stay
   on the 10.0.x band so net10 consumers (ASP.NET Core 10 shared framework) are not lifted to
   11.0.0 assemblies.
-- The package is published to nuget.org again, in addition to the `vault-packages` Azure
-  Artifacts feed.
+- Publishing stays on the `vault-packages` Azure Artifacts feed. A nuget.org release is deferred:
+  nuget.org recommends Trusted Publishing (GitHub Actions only) over API keys.
 - Pipeline: .NET SDK 11.0.x replaces 8.0.x (10.0.x kept); coverage runs on net10.0.
 
 ### Commands (`N2.Core.Commands`)

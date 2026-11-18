@@ -2,7 +2,6 @@
 #
 # Packages are pushed to the Azure Artifacts feed defined by `artifactsFeedName`.
 # The feed URL is constructed at runtime from System.CollectionUri and System.TeamProject.
-# Packages are also pushed to nuget.org using the secret pipeline variable PACKAGE_N2.
 #
 # Publish stage runs only on pushes to trunk (not on PRs).
 
@@ -255,30 +254,3 @@ stages:
         COLLECTION_URI: $(System.CollectionUri)
         TEAM_PROJECT: $(System.TeamProject)
         FEED_NAME: $(artifactsFeedName)
-
-    # Public release on nuget.org. PACKAGE_N2 is a secret pipeline variable (nuget.org API key);
-    # secret variables are not exposed to scripts unless mapped explicitly in env.
-    # An undefined variable arrives as the literal macro text, so that case is rejected as well.
-    - script: |
-        set -euo pipefail
-        if [[ -z "${PACKAGE_N2:-}" || "${PACKAGE_N2}" == '$('* ]]; then
-          echo "##vso[task.logissue type=error]Secret pipeline variable PACKAGE_N2 (nuget.org API key) is not set."
-          exit 1
-        fi
-        PKG_COUNT=$(find "$(Pipeline.Workspace)/packages" -name "*.nupkg" | wc -l)
-        if [[ "$PKG_COUNT" -eq 0 ]]; then
-          echo "##vso[task.logissue type=error]No *.nupkg found in $(Pipeline.Workspace)/packages; nothing to push to nuget.org."
-          exit 1
-        fi
-        echo "Packages to push: $PKG_COUNT"
-        while IFS= read -r -d '' pkg; do
-          echo "Pushing to nuget.org: $(basename "$pkg")"
-          dotnet nuget push "$pkg" \
-            --source "$NUGET_ORG_SOURCE" \
-            --api-key "$PACKAGE_N2" \
-            --skip-duplicate
-        done < <(find "$(Pipeline.Workspace)/packages" -name "*.nupkg" -print0)
-      displayName: Push NuGet package to nuget.org
-      env:
-        PACKAGE_N2: $(PACKAGE_N2)
-        NUGET_ORG_SOURCE: https://api.nuget.org/v3/index.json

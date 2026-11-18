@@ -9,7 +9,6 @@ The package contains no concrete service implementations. Everything is an inter
 
 The library targets `netstandard2.0`, `netstandard2.1`, `net10.0`, and `net11.0`.
 
-From 2.0.0 the package is published to nuget.org again (package id `N2.Core.Abstractions`), in addition to the `vault-packages` Azure Artifacts feed.
 
 From 2.0.0 every asynchronous member takes a required `CancellationToken` as its last parameter, and no member name ends in `Async`. See [CHANGELOG.md](CHANGELOG.md) for the full list of renamed members.
 
