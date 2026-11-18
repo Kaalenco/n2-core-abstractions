@@ -12,6 +12,13 @@ The library targets `netstandard2.0`, `netstandard2.1`, `net10.0`, and `net11.0`
 
 From 2.0.0 every asynchronous member takes a required `CancellationToken` as its last parameter, and no member name ends in `Async`. See [CHANGELOG.md](CHANGELOG.md) for the full list of renamed members.
 
+## Upgrading to 2.0
+
+2.0.0 is a breaking release: renamed members, required cancellation tokens, and `net8.0`
+replaced by `net10.0`/`net11.0`. Follow [MIGRATION-2.0.md](MIGRATION-2.0.md) for the upgrade
+checklist, the 1.x -> 2.0.0 member mapping with before/after examples, and guidance on passing
+cancellation tokens.
+
 ## Functional areas
 
 ### Core utilities (`N2.Core`)

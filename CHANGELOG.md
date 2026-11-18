@@ -5,6 +5,7 @@
 Major release. Every asynchronous member takes a required `CancellationToken`, the `Async`
 suffix is gone from all member names, and the target frameworks move to .NET 10 / .NET 11.
 All changes below are breaking unless stated otherwise.
+Upgrade guide: [MIGRATION-2.0.md](MIGRATION-2.0.md).
 
 ### Convention
 
