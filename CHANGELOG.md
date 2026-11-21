@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0 — 2026-11-21
+
+Version bump only; no code changes since 2.0.0.
+
 ## 2.0.0 — 2026-11-21
 
 ### Encryption (security review A-1..A-5)
