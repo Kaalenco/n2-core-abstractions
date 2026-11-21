@@ -82,7 +82,11 @@ public class Token
     /// <returns></returns>
     public static Token Deserialize(string json)
     {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(json);
+#else
         if (json is null) throw new ArgumentNullException(nameof(json));
+#endif
         if (json.Length > MaxJsonLength)
             throw new ArgumentException($"Token JSON exceeds {MaxJsonLength} characters.", nameof(json));
         return JsonSerializer.Deserialize<Token>(json, DeserializeOptions) ?? new Token();

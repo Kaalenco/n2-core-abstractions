@@ -57,10 +57,9 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
         ValidateSecret(systemSecret);
         ValidatePurpose(purpose);
         var (encKey, macKey) = DeriveKeys(systemSecret, purpose);
-        byte[]? plaintext = null;
+        var plaintext = new byte[4 + Value.Length + 8];
         try
         {
-            plaintext = new byte[4 + Value.Length + 8];
             WriteLittleEndian(plaintext, 0, (uint)Value.Length, 4);
             Buffer.BlockCopy(Value, 0, plaintext, 4, Value.Length);
             WriteLittleEndian(plaintext, 4 + Value.Length, (ulong)Expiration.Ticks, 8);
@@ -107,7 +106,7 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
         {
             Zero(encKey);
             Zero(macKey);
-            if (plaintext != null) Zero(plaintext);
+            Zero(plaintext);
         }
     }
 
