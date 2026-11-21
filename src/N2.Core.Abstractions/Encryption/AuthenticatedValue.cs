@@ -29,7 +29,10 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
     public AuthenticatedValue(byte[] value, DateTime expiration)
     {
         Value      = value ?? [];
-        Expiration = expiration.ToUniversalTime();
+        // Unspecified kind is treated as UTC (not local time) so expiry does not depend on server time zone.
+        Expiration = expiration.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(expiration, DateTimeKind.Utc)
+            : expiration.ToUniversalTime();
     }
 
     private const int IvLength  = 16;
@@ -46,17 +49,38 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
     /// Application-wide secret from which encryption and MAC keys are derived.
     /// Must be at least 32 bytes. Keep this secret; exposure breaks confidentiality.
     /// </param>
-    public string ToTokenString(byte[] systemSecret)
+    public string ToTokenString(byte[] systemSecret) => ToTokenString(systemSecret, string.Empty);
+
+    /// <summary>
+    /// Like <see cref="ToTokenString(byte[])"/> but binds the token to a <paramref name="purpose"/>
+    /// (for example <c>"email-confirmation"</c>). A token created for one purpose fails
+    /// verification for any other purpose, which prevents cross-feature token reuse.
+    /// An empty purpose is the legacy v1 behaviour.
+    /// </summary>
+    public string ToTokenString(byte[] systemSecret, string purpose)
     {
         ValidateSecret(systemSecret);
-        var (encKey, macKey) = DeriveKeys(systemSecret);
+        var (encKey, macKey) = DeriveKeys(systemSecret, purpose);
+        try
+        {
+            return Serialise(encKey, macKey);
+        }
+        finally
+        {
+            Zero(encKey);
+            Zero(macKey);
+        }
+    }
+
+    private string Serialise(byte[] encKey, byte[] macKey)
+    {
 
         // Plaintext: [4 bytes: value length][value bytes][8 bytes: UTC ticks]
         // Value is guaranteed non-null and Expiration is already UTC (enforced by constructor).
         var plaintext = new byte[4 + Value.Length + 8];
-        Buffer.BlockCopy(BitConverter.GetBytes(Value.Length), 0, plaintext, 0,              4);
-        Buffer.BlockCopy(Value,                               0, plaintext, 4,              Value.Length);
-        Buffer.BlockCopy(BitConverter.GetBytes(Expiration.Ticks), 0, plaintext, 4 + Value.Length, 8);
+        WriteLittleEndian(plaintext, 0, (uint)Value.Length, 4);
+        Buffer.BlockCopy(Value, 0, plaintext, 4, Value.Length);
+        WriteLittleEndian(plaintext, 4 + Value.Length, (ulong)Expiration.Ticks, 8);
 
         // Fresh random IV per serialisation
         var iv = new byte[IvLength];
@@ -81,6 +105,7 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
             using var encryptor = aes.CreateEncryptor();
             ciphertext = encryptor.TransformFinalBlock(plaintext, 0, plaintext.Length);
         }
+        Zero(plaintext);
 #pragma warning restore CA5401
 
         // Encrypt-then-MAC: HMAC covers IV + ciphertext
@@ -115,6 +140,34 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
     /// <exception cref="FormatException">Thrown when the token string is malformed.</exception>
     /// <exception cref="CryptographicException">Thrown when MAC or decryption fails.</exception>
     public static AuthenticatedValue FromTokenString(string tokenString, byte[] systemSecret, ITimeSystem time)
+        => FromTokenString(tokenString, systemSecret, time, string.Empty);
+
+    /// <summary>
+    /// Non-throwing variant for request paths: returns false for every invalid, tampered,
+    /// wrong-purpose or expired token without revealing why. Invalid arguments
+    /// (null secret/time) still throw, as they are programming errors.
+    /// </summary>
+    public static bool TryFromTokenString(string? tokenString, byte[] systemSecret, ITimeSystem time,
+        string purpose, out AuthenticatedValue? value)
+    {
+        value = null;
+        if (string.IsNullOrEmpty(tokenString)) return false;
+        try
+        {
+            value = FromTokenString(tokenString!, systemSecret, time, purpose);
+            return true;
+        }
+        catch (Exception ex) when (ex is FormatException || ex is CryptographicException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Verifies a token created with <see cref="ToTokenString(byte[], string)"/> for the same
+    /// <paramref name="purpose"/>. An empty purpose is the legacy v1 behaviour.
+    /// </summary>
+    public static AuthenticatedValue FromTokenString(string tokenString, byte[] systemSecret, ITimeSystem time, string purpose)
     {
         if (string.IsNullOrEmpty(tokenString))
             throw new ArgumentException("tokenString must not be null or empty.", nameof(tokenString));
@@ -134,8 +187,20 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
         if (encoded.Length < IvLength + 16 + MacLength)
             throw new FormatException("Invalid token string: too short.");
 
-        var (encKey, macKey) = DeriveKeys(systemSecret);
+        var (encKey, macKey) = DeriveKeys(systemSecret, purpose);
+        try
+        {
+            return Deserialise(encoded, encKey, macKey, time);
+        }
+        finally
+        {
+            Zero(encKey);
+            Zero(macKey);
+        }
+    }
 
+    private static AuthenticatedValue Deserialise(byte[] encoded, byte[] encKey, byte[] macKey, ITimeSystem time)
+    {
         // Split: IV | ciphertext | MAC
         int ciphertextLength = encoded.Length - IvLength - MacLength;
         var iv         = new byte[IvLength];
@@ -182,7 +247,7 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
         if (plaintext.Length < 4 + 8)
             throw new FormatException("Invalid token string: plaintext too short.");
 
-        var valueLength = BitConverter.ToInt32(plaintext, 0);
+        var valueLength = unchecked((int)ReadLittleEndian(plaintext, 0, 4));
         if (valueLength < 0 || plaintext.Length != 4 + valueLength + 8)
             throw new FormatException("Invalid token string: plaintext length mismatch.");
 
@@ -190,8 +255,11 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
         if (valueLength > 0)
             Buffer.BlockCopy(plaintext, 4, value, 0, valueLength);
 
-        var ticks      = BitConverter.ToInt64(plaintext, 4 + valueLength);
+        var ticks = unchecked((long)ReadLittleEndian(plaintext, 4 + valueLength, 8));
+        if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+            throw new FormatException("Invalid token string: expiration out of range.");
         var expiration = new DateTime(ticks, DateTimeKind.Utc);
+        Zero(plaintext);
 
         if (expiration < time.UtcNow)
             throw new CryptographicException("Token has expired.");
@@ -203,17 +271,49 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
     {
         if (systemSecret == null || systemSecret.Length < 32)
             throw new ArgumentException("systemSecret must be at least 32 bytes.", nameof(systemSecret));
+
+        // Reject trivially weak secrets (e.g. all zero, or a short pattern repeated).
+        var distinct = new HashSet<byte>(systemSecret);
+        if (distinct.Count < 8)
+            throw new ArgumentException(
+                "systemSecret is too weak: it must be random (use EncryptionUtilities.GenerateRandomKey(32)).",
+                nameof(systemSecret));
+    }
+
+    private static void Zero(byte[] buffer)
+    {
+#if NETSTANDARD2_0
+        Array.Clear(buffer, 0, buffer.Length);
+#else
+        CryptographicOperations.ZeroMemory(buffer);
+#endif
+    }
+
+    private static void WriteLittleEndian(byte[] buffer, int offset, ulong value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            buffer[offset + i] = (byte)(value >> (8 * i));
+    }
+
+    private static ulong ReadLittleEndian(byte[] buffer, int offset, int count)
+    {
+        ulong result = 0;
+        for (int i = 0; i < count; i++)
+            result |= (ulong)buffer[offset + i] << (8 * i);
+        return result;
     }
 
     /// <summary>
     /// Derives separate encryption and MAC keys from <paramref name="systemSecret"/>
     /// using domain-separated HMAC-SHA256 so the same key material is never reused.
     /// </summary>
-    private static (byte[] encKey, byte[] macKey) DeriveKeys(byte[] systemSecret)
+    private static (byte[] encKey, byte[] macKey) DeriveKeys(byte[] systemSecret, string? purpose)
     {
+        // An empty purpose keeps the exact v1 labels so existing tokens remain valid.
+        var suffix = string.IsNullOrEmpty(purpose) ? string.Empty : "|" + purpose;
         using var hmac = new HMACSHA256(systemSecret);
-        var encKey = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(EncLabel));
-        var macKey = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(MacLabel));
+        var encKey = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(EncLabel + suffix));
+        var macKey = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(MacLabel + suffix));
         return (encKey, macKey);
     }
 
@@ -222,11 +322,15 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
     /// </summary>
     private static bool ConstantTimeEquals(byte[] a, byte[] b)
     {
+#if !NETSTANDARD2_0
+        return CryptographicOperations.FixedTimeEquals(a, b);
+#else
         if (a.Length != b.Length) return false;
         int diff = 0;
         for (int i = 0; i < a.Length; i++)
             diff |= a[i] ^ b[i];
         return diff == 0;
+#endif
     }
 
     public override bool Equals(object? obj) => obj is AuthenticatedValue other && Equals(other);

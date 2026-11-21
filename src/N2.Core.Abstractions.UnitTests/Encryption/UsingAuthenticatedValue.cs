@@ -463,4 +463,34 @@ public class UsingAuthenticatedValue
         var b = new AuthenticatedValue([1, 2, 3], FutureExpiry);
         Assert.AreEqual(a.GetHashCode(), b.GetHashCode());
     }
+
+    [TestMethod]
+    public void Purpose_RoundTrip_Succeeds()
+    {
+        var token = new AuthenticatedValue([1, 2, 3], FutureExpiry).ToTokenString(Secret, "email");
+        var av = AuthenticatedValue.FromTokenString(token, Secret, Now, "email");
+        CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, av.Value);
+    }
+
+    [TestMethod]
+    public void Purpose_Mismatch_Throws()
+    {
+        var token = new AuthenticatedValue([1], FutureExpiry).ToTokenString(Secret, "email");
+        Assert.Throws<CryptographicException>(() => AuthenticatedValue.FromTokenString(token, Secret, Now, "reset"));
+        Assert.Throws<CryptographicException>(() => AuthenticatedValue.FromTokenString(token, Secret, Now));
+    }
+
+    [TestMethod]
+    public void TryFromTokenString_BadInput_ReturnsFalse()
+    {
+        Assert.IsFalse(AuthenticatedValue.TryFromTokenString("garbage", Secret, Now, "", out var v));
+        Assert.IsNull(v);
+    }
+
+    [TestMethod]
+    public void WeakSecret_Throws()
+    {
+        var av = new AuthenticatedValue([1], FutureExpiry);
+        Assert.Throws<ArgumentException>(() => av.ToTokenString(new byte[32]));
+    }
 }

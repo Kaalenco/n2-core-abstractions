@@ -13,6 +13,9 @@ on:
     paths:
       - 'src/N2.*/**'
 
+permissions:
+  contents: read
+
 jobs:
   # For the checkout and upload artifacts, we use the latest versions of the actions as of March 2026.
   # For the .NET setup, we use v4 which supports both .NET 8 and 10.
@@ -27,11 +30,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: Firenza/secrets-to-env@v1.3.0
-      name: Set secrets as environment variables
-      with:
-        secrets: ${{ toJSON(secrets) }}
-        secret_filter_regex: ENV_*
     - uses: actions/checkout@v4
 
     - name: Setup .NET 8.0
@@ -169,4 +167,4 @@ jobs:
           echo "Version ${{ steps.version_check.outputs.version }} already exists on NuGet — nothing to publish."
           exit 0
         fi
-        dotnet nuget push **/*.nupkg --api-key $PACKAGE_N2 --source https://api.nuget.org/v3/index.json
+        dotnet nuget push "**/*.nupkg" --api-key "$PACKAGE_N2" --skip-duplicate --source https://api.nuget.org/v3/index.json

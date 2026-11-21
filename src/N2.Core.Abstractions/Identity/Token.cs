@@ -38,7 +38,8 @@ public class Token
     public string? RefreshToken { get; set; }
 
     /// <summary>
-    /// The UNIX epoch at which the token will expire.
+    /// The UNIX epoch (absolute timestamp) at which the token will expire.
+    /// Note: unlike RFC 6749, where <c>expires_in</c> is seconds from now, this value is absolute.
     /// </summary>
     [JsonPropertyName("expires_in")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -81,6 +82,31 @@ public class Token
     /// <returns></returns>
     public static Token Deserialize(string json)
     {
-        return JsonSerializer.Deserialize<Token>(json) ?? new Token();
+        if (json is null) throw new ArgumentNullException(nameof(json));
+        if (json.Length > MaxJsonLength)
+            throw new ArgumentException($"Token JSON exceeds {MaxJsonLength} characters.", nameof(json));
+        return JsonSerializer.Deserialize<Token>(json, DeserializeOptions) ?? new Token();
     }
+
+    private const int MaxJsonLength = 16 * 1024;
+    private static readonly JsonSerializerOptions DeserializeOptions = new() { MaxDepth = 8 };
+
+    /// <summary>
+    /// Returns a copy with <see cref="ClientSecret"/>, <see cref="AccessToken"/> and
+    /// <see cref="RefreshToken"/> replaced by <c>***</c> (when set). Use this before logging.
+    /// </summary>
+    public Token Redacted() => new()
+    {
+        AccessToken = AccessToken is null ? null : "***",
+        ClientId = ClientId,
+        ClientSecret = ClientSecret is null ? null : "***",
+        RefreshToken = RefreshToken is null ? null : "***",
+        ExpiresIn = ExpiresIn,
+        TokenType = TokenType,
+        GrantType = GrantType,
+        Scope = Scope,
+    };
+
+    /// <summary>Returns the redacted JSON form; never includes live credentials.</summary>
+    public override string ToString() => Redacted().Serialize();
 }
