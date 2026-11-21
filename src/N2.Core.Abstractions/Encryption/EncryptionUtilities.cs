@@ -39,13 +39,14 @@ public static class EncryptionUtilities
     /// <param name="systemSecret">
     /// Application-wide secret used for encryption and MAC. Must be at least 32 bytes.
     /// </param>
+    /// <param name="purpose">What the token is for; verification fails for any other purpose.</param>
     /// <returns>A URL-safe base64 token string suitable for storage or transmission.</returns>
-    public static string ToAuthenticatedValue(this string value, DateTime expiration, byte[] systemSecret)
+    public static string ToAuthenticatedValue(this string value, DateTime expiration, byte[] systemSecret, string purpose)
     {
         return (value == null) 
             ? throw new ArgumentNullException(nameof(value))
             : new AuthenticatedValue(System.Text.Encoding.UTF8.GetBytes(value), expiration)
-              .ToTokenString(systemSecret);
+              .ToTokenString(systemSecret, purpose);
     }
 
     /// <summary>
@@ -57,13 +58,14 @@ public static class EncryptionUtilities
     /// The same secret used when the token was created. Must be at least 32 bytes.
     /// </param>
     /// <param name="time">Used to verify the token has not expired.</param>
+    /// <param name="purpose">Must match the purpose used when the token was created.</param>
     /// <returns>The original plaintext string.</returns>
     /// <exception cref="System.Security.Cryptography.CryptographicException">
     /// Thrown when the token has been tampered with, the wrong secret is supplied, or the token has expired.
     /// </exception>
-    public static string FromAuthenticatedValue(this string tokenString, byte[] systemSecret, ITimeSystem time)
+    public static string FromAuthenticatedValue(this string tokenString, byte[] systemSecret, ITimeSystem time, string purpose)
     {
-        var av = AuthenticatedValue.FromTokenString(tokenString, systemSecret, time);
+        var av = AuthenticatedValue.FromTokenString(tokenString, systemSecret, time, purpose);
         return av.Value.Length == 0
             ? string.Empty
             : System.Text.Encoding.UTF8.GetString(av.Value);

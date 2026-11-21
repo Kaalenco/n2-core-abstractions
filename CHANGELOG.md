@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.0 — 2026-11-21
+
+### Encryption (security review A-1..A-5)
+
+- **Breaking:** `AuthenticatedValue` token format v2. Header `[version=2][key id]`, HKDF-SHA256 key derivation, and all of version, key id and purpose are covered by the MAC. **All v1 tokens are rejected** (hard cutover; re-issue tokens after upgrading).
+- **Breaking:** `purpose` is now mandatory on `ToTokenString`, `FromTokenString`, `ToAuthenticatedValue` and `FromAuthenticatedValue`. A token only verifies for the purpose it was created with.
+- Key rotation: `FromTokenString`/`TryFromTokenString` accept `IReadOnlyList<byte[]>`; the token's key id is the index into the list (append, never reorder). `ToTokenString` takes an optional `keyId`.
+- New `TryFromTokenString` that never throws on bad input; use it on request paths.
+- Secrets with fewer than 8 distinct bytes (e.g. all zero) are rejected.
+- Little-endian fields, range-checked expiry (`FormatException`), `Unspecified` DateTime treated as UTC, `FixedTimeEquals`, derived keys and plaintext zeroed.
+
+### Identity (A-6)
+
+- `Token.Redacted()`, redacting `ToString()`, `Deserialize` size/depth limits; `ExpiresIn` documented as an absolute timestamp.
+
+### Build
+
+- Removed `secrets-to-env` from the workflow, top-level `permissions: contents: read`, `--skip-duplicate` on push.
+
 ## 1.7.0 — 2026-04-14
 
 ### Identity
