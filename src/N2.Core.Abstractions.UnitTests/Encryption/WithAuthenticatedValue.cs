@@ -17,6 +17,7 @@ public sealed class WithAuthenticatedValue
     }
 
     private static readonly byte[] TestSecret = EncryptionUtilities.GenerateRandomKey(32);
+    private const string Purpose = "test";
     private static readonly ITimeSystem CurrentTime = new FixedTimeSystem(DateTime.UtcNow.AddMinutes(1));
 
     // -------------------------------------------------------------------------
@@ -27,14 +28,14 @@ public sealed class WithAuthenticatedValue
     public void FromTokenString_NullTokenString_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
-            AuthenticatedValue.FromTokenString(null!, TestSecret, CurrentTime));
+            AuthenticatedValue.FromTokenString(null!, TestSecret, CurrentTime, Purpose));
     }
 
     [TestMethod]
     public void FromTokenString_EmptyTokenString_ThrowsArgumentException()
     {
         Assert.Throws<ArgumentException>(() =>
-            AuthenticatedValue.FromTokenString(string.Empty, TestSecret, CurrentTime));
+            AuthenticatedValue.FromTokenString(string.Empty, TestSecret, CurrentTime, Purpose));
     }
 
     [TestMethod]
@@ -42,7 +43,7 @@ public sealed class WithAuthenticatedValue
     {
         string token = CreateValidToken("test", DateTime.UtcNow.AddHours(1));
         Assert.Throws<ArgumentException>(() =>
-            AuthenticatedValue.FromTokenString(token, TestSecret, null!));
+            AuthenticatedValue.FromTokenString(token, TestSecret, null!, Purpose));
     }
 
     [TestMethod]
@@ -50,7 +51,7 @@ public sealed class WithAuthenticatedValue
     {
         string token = CreateValidToken("test", DateTime.UtcNow.AddHours(1));
         Assert.Throws<ArgumentException>(() =>
-            AuthenticatedValue.FromTokenString(token, null!, CurrentTime));
+            AuthenticatedValue.FromTokenString(token, null!, CurrentTime, Purpose));
     }
 
     [TestMethod]
@@ -59,7 +60,7 @@ public sealed class WithAuthenticatedValue
         string token = CreateValidToken("test", DateTime.UtcNow.AddHours(1));
         byte[] shortSecret = new byte[16];
         Assert.Throws<ArgumentException>(() =>
-            AuthenticatedValue.FromTokenString(token, shortSecret, CurrentTime));
+            AuthenticatedValue.FromTokenString(token, shortSecret, CurrentTime, Purpose));
     }
 
     // -------------------------------------------------------------------------
@@ -70,7 +71,7 @@ public sealed class WithAuthenticatedValue
     public void FromTokenString_InvalidBase64Characters_ThrowsFormatException()
     {
         Assert.Throws<FormatException>(() =>
-            AuthenticatedValue.FromTokenString("not!valid!base64!!!", TestSecret, CurrentTime));
+            AuthenticatedValue.FromTokenString("not!valid!base64!!!", TestSecret, CurrentTime, Purpose));
     }
 
     [TestMethod]
@@ -80,7 +81,7 @@ public sealed class WithAuthenticatedValue
         byte[] tooShort = new byte[10];
         string token = Convert.ToBase64String(tooShort).Replace('+', '-').Replace('/', '_').TrimEnd('=');
         Assert.Throws<FormatException>(() =>
-            AuthenticatedValue.FromTokenString(token, TestSecret, CurrentTime));
+            AuthenticatedValue.FromTokenString(token, TestSecret, CurrentTime, Purpose));
     }
 
     // -------------------------------------------------------------------------
@@ -93,7 +94,7 @@ public sealed class WithAuthenticatedValue
         string token = CreateValidToken("hello", DateTime.UtcNow.AddHours(1));
         string tampered = FlipMiddleByte(token);
         Assert.Throws<CryptographicException>(() =>
-            AuthenticatedValue.FromTokenString(tampered, TestSecret, CurrentTime));
+            AuthenticatedValue.FromTokenString(tampered, TestSecret, CurrentTime, Purpose));
     }
 
     [TestMethod]
@@ -102,7 +103,7 @@ public sealed class WithAuthenticatedValue
         string token = CreateValidToken("hello", DateTime.UtcNow.AddHours(1));
         byte[] wrongSecret = EncryptionUtilities.GenerateRandomKey(32);
         Assert.Throws<CryptographicException>(() =>
-            AuthenticatedValue.FromTokenString(token, wrongSecret, CurrentTime));
+            AuthenticatedValue.FromTokenString(token, wrongSecret, CurrentTime, Purpose));
     }
 
     [TestMethod]
@@ -110,7 +111,7 @@ public sealed class WithAuthenticatedValue
     {
         string token = CreateValidToken("payload", DateTime.UtcNow.AddDays(-1));
         Assert.Throws<CryptographicException>(() =>
-            AuthenticatedValue.FromTokenString(token, TestSecret, CurrentTime));
+            AuthenticatedValue.FromTokenString(token, TestSecret, CurrentTime, Purpose));
     }
 
     // -------------------------------------------------------------------------
@@ -121,8 +122,8 @@ public sealed class WithAuthenticatedValue
     public void FromTokenString_EmptyValue_RoundTripsCorrectly()
     {
         AuthenticatedValue original = new([], DateTime.UtcNow.AddHours(1));
-        string token = original.ToTokenString(TestSecret);
-        AuthenticatedValue result = AuthenticatedValue.FromTokenString(token, TestSecret, CurrentTime);
+        string token = original.ToTokenString(TestSecret, Purpose);
+        AuthenticatedValue result = AuthenticatedValue.FromTokenString(token, TestSecret, CurrentTime, Purpose);
         Assert.AreEqual(0, result.Value.Length);
     }
 
@@ -133,7 +134,7 @@ public sealed class WithAuthenticatedValue
     private static string CreateValidToken(string value, DateTime expiry)
     {
         return new AuthenticatedValue(System.Text.Encoding.UTF8.GetBytes(value), expiry)
-            .ToTokenString(TestSecret);
+            .ToTokenString(TestSecret, Purpose);
     }
 
     private static string FlipMiddleByte(string token)

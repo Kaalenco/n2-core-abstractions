@@ -17,6 +17,7 @@ public sealed class UsingEncryptionUtilities
     }
 
     private static readonly byte[] TestSecret = EncryptionUtilities.GenerateRandomKey(32);
+    private const string Purpose = "test";
 
     [TestMethod]
     public void GenerateRandomKey_ProducesArrayOfRequestedLength()
@@ -38,7 +39,7 @@ public sealed class UsingEncryptionUtilities
     {
         string? value = null;
         DateTime expiry = DateTime.UtcNow.AddHours(1);
-        Assert.Throws<ArgumentNullException>(() => value!.ToAuthenticatedValue(expiry, TestSecret));
+        Assert.Throws<ArgumentNullException>(() => value!.ToAuthenticatedValue(expiry, TestSecret, Purpose));
     }
 
     [TestMethod]
@@ -48,8 +49,8 @@ public sealed class UsingEncryptionUtilities
         DateTime expiry = DateTime.UtcNow.AddHours(1);
         ITimeSystem time = new FixedTimeSystem(DateTime.UtcNow);
 
-        string token = original.ToAuthenticatedValue(expiry, TestSecret);
-        string result = token.FromAuthenticatedValue(TestSecret, time);
+        string token = original.ToAuthenticatedValue(expiry, TestSecret, Purpose);
+        string result = token.FromAuthenticatedValue(TestSecret, time, Purpose);
 
         Assert.AreEqual(original, result);
     }
@@ -61,7 +62,7 @@ public sealed class UsingEncryptionUtilities
         DateTime expiry = DateTime.UtcNow.AddSeconds(-1);
         ITimeSystem time = new FixedTimeSystem(DateTime.UtcNow);
 
-        string token = original.ToAuthenticatedValue(expiry, TestSecret);
-        Assert.Throws<CryptographicException>(() => token.FromAuthenticatedValue(TestSecret, time));
+        string token = original.ToAuthenticatedValue(expiry, TestSecret, Purpose);
+        Assert.Throws<CryptographicException>(() => token.FromAuthenticatedValue(TestSecret, time, Purpose));
     }
 }

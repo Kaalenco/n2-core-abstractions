@@ -87,9 +87,9 @@ The `netstandard` targets are built by the .NET 10 and .NET 11 SDKs and do not r
 The package version is set in `N2.Core.Abstractions/N2.Core.Abstractions.csproj`:
 
 ```xml
-<PackageVersion>2.0.0</PackageVersion>
-<AssemblyVersion>2.0.0</AssemblyVersion>
-<ProductVersion>2.0.0</ProductVersion>
+<PackageVersion>3.0.0</PackageVersion>
+<AssemblyVersion>3.0.0</AssemblyVersion>
+<ProductVersion>3.0.0</ProductVersion>
 ```
 
 Bump all three values together before merging a release to `trunk`.

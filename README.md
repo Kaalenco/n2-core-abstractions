@@ -71,4 +71,4 @@ An interface over system-level services (currently time) so that code depending 
 
 ## Change log
 
-See [CHANGELOG.md](CHANGELOG.md) for the full history. Current version: **2.0.0**.
+See [CHANGELOG.md](CHANGELOG.md) for the full history. Current version: **3.0.0**.

@@ -1,20 +1,24 @@
 // This file contains utility methods for handling encryption keys, such as generating random
 // keys and creating and validating time based access tokens (TATs).
-using System.Security.Cryptography; 
+using System.Security.Cryptography;
 using N2.Core.SystemAbstractions;
 
 namespace N2.Core.Abstractions.Encryption;
 
 /// <summary>
-/// An authenticated, encrypted value with a mandatory expiration.
+/// An authenticated, encrypted value with a mandatory expiration, bound to a purpose.
 /// Use <see cref="ToTokenString"/> to produce a confidential, integrity-protected string
-/// and <see cref="FromTokenString"/> to verify and recover the value.
+/// and <see cref="FromTokenString(string, byte[], ITimeSystem, string)"/> to verify and recover the value.
 /// </summary>
 /// <remarks>
-/// Wire format (base64url-encoded):
-///   [16 bytes IV] [AES-256-CBC ciphertext of (value_length || value || UTC_ticks)] [32 bytes HMAC-SHA256(IV || ciphertext)]
-/// Two keys are derived from <c>systemSecret</c> via domain-separated HMAC so the same
-/// key material is never used for both encryption and authentication.
+/// Wire format v2 (base64url-encoded):
+///   [1 byte version = 2] [1 byte key id] [16 bytes IV]
+///   [AES-256-CBC ciphertext of (value_length(LE) || value || UTC_ticks(LE))]
+///   [32 bytes HMAC-SHA256(everything before the MAC)]
+/// Encryption and MAC keys are derived with HKDF-SHA256 (RFC 5869) from the secret, using the
+/// info strings <c>N2.AuthenticatedValue.v2.enc|purpose</c> and <c>N2.AuthenticatedValue.v2.mac|purpose</c>.
+/// The version, key id and purpose are all authenticated. v1 tokens are not accepted.
+/// The expiry check has no clock-skew allowance; allow for skew yourself in multi-node deployments.
 /// </remarks>
 public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
 {
@@ -25,157 +29,187 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
     public DateTime Expiration { get; }
 
     /// <param name="value">The value bytes. Null is treated as empty.</param>
-    /// <param name="expiration">Expiration time. Converted to UTC if not already.</param>
+    /// <param name="expiration">Expiration time. Unspecified kind is treated as UTC.</param>
     public AuthenticatedValue(byte[] value, DateTime expiration)
     {
         Value      = value ?? [];
-        Expiration = expiration.ToUniversalTime();
+        Expiration = expiration.Kind == DateTimeKind.Unspecified
+            ? DateTime.SpecifyKind(expiration, DateTimeKind.Utc)
+            : expiration.ToUniversalTime();
     }
 
+    private const byte FormatVersion = 2;
+    private const int HeaderLength = 2;
     private const int IvLength  = 16;
     private const int MacLength = 32;
-    private const string EncLabel = "N2.AuthenticatedValue.v1.enc";
-    private const string MacLabel = "N2.AuthenticatedValue.v1.mac";
+    private const string EncLabel = "N2.AuthenticatedValue.v2.enc|";
+    private const string MacLabel = "N2.AuthenticatedValue.v2.mac|";
 
     /// <summary>
-    /// Encrypts and serialises this value to a URL-safe base64 string.
-    /// A fresh random IV is generated on every call, so the same value produces
-    /// different strings across calls — this is expected and correct.
+    /// Encrypts and serialises this value to a URL-safe base64 string. A fresh random IV is used
+    /// on every call, so the same value produces different strings across calls.
     /// </summary>
-    /// <param name="systemSecret">
-    /// Application-wide secret from which encryption and MAC keys are derived.
-    /// Must be at least 32 bytes. Keep this secret; exposure breaks confidentiality.
-    /// </param>
-    public string ToTokenString(byte[] systemSecret)
+    /// <param name="systemSecret">Random secret of at least 32 bytes (see <see cref="EncryptionUtilities.GenerateRandomKey"/>).</param>
+    /// <param name="purpose">What the token is for, e.g. "email-confirmation". Verification fails for any other purpose.</param>
+    /// <param name="keyId">Identifies the secret in the verifier's list, enabling key rotation.</param>
+    public string ToTokenString(byte[] systemSecret, string purpose, byte keyId = 0)
     {
         ValidateSecret(systemSecret);
-        var (encKey, macKey) = DeriveKeys(systemSecret);
-
-        // Plaintext: [4 bytes: value length][value bytes][8 bytes: UTC ticks]
-        // Value is guaranteed non-null and Expiration is already UTC (enforced by constructor).
+        ValidatePurpose(purpose);
+        var (encKey, macKey) = DeriveKeys(systemSecret, purpose);
         var plaintext = new byte[4 + Value.Length + 8];
-        Buffer.BlockCopy(BitConverter.GetBytes(Value.Length), 0, plaintext, 0,              4);
-        Buffer.BlockCopy(Value,                               0, plaintext, 4,              Value.Length);
-        Buffer.BlockCopy(BitConverter.GetBytes(Expiration.Ticks), 0, plaintext, 4 + Value.Length, 8);
+        try
+        {
+            WriteLittleEndian(plaintext, 0, (uint)Value.Length, 4);
+            Buffer.BlockCopy(Value, 0, plaintext, 4, Value.Length);
+            WriteLittleEndian(plaintext, 4 + Value.Length, (ulong)Expiration.Ticks, 8);
 
-        // Fresh random IV per serialisation
-        var iv = new byte[IvLength];
+            var iv = new byte[IvLength];
 #if NET8_0_OR_GREATER
-        RandomNumberGenerator.Fill(iv);
+            RandomNumberGenerator.Fill(iv);
 #else
-        using (var rng = new RNGCryptoServiceProvider())
-            rng.GetBytes(iv);
+            using (var rng = new RNGCryptoServiceProvider())
+                rng.GetBytes(iv);
 #endif
 
-        // AES-256-CBC encryption
-        // CA5401: IV is CSPRNG-generated above (RandomNumberGenerator.Fill / RNGCryptoServiceProvider),
-        // so it is non-repeatable by construction. The analyser cannot prove this statically.
+            // CA5401: IV is CSPRNG-generated above, so it is non-repeatable by construction.
 #pragma warning disable CA5401
-        byte[] ciphertext;
-        using (var aes = Aes.Create())
-        {
-            aes.Key     = encKey;
-            aes.IV      = iv;
-            aes.Mode    = CipherMode.CBC;
-            aes.Padding = PaddingMode.PKCS7;
-            using var encryptor = aes.CreateEncryptor();
-            ciphertext = encryptor.TransformFinalBlock(plaintext, 0, plaintext.Length);
-        }
+            byte[] ciphertext;
+            using (var aes = Aes.Create())
+            {
+                aes.Key     = encKey;
+                aes.IV      = iv;
+                aes.Mode    = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+                using var encryptor = aes.CreateEncryptor();
+                ciphertext = encryptor.TransformFinalBlock(plaintext, 0, plaintext.Length);
+            }
 #pragma warning restore CA5401
 
-        // Encrypt-then-MAC: HMAC covers IV + ciphertext
-        var macInput = new byte[IvLength + ciphertext.Length];
-        Buffer.BlockCopy(iv,         0, macInput, 0,        IvLength);
-        Buffer.BlockCopy(ciphertext, 0, macInput, IvLength, ciphertext.Length);
+            // Layout: header | IV | ciphertext | MAC (MAC covers everything before it)
+            var output = new byte[HeaderLength + IvLength + ciphertext.Length + MacLength];
+            output[0] = FormatVersion;
+            output[1] = keyId;
+            Buffer.BlockCopy(iv,         0, output, HeaderLength,            IvLength);
+            Buffer.BlockCopy(ciphertext, 0, output, HeaderLength + IvLength, ciphertext.Length);
 
-        byte[] mac;
-        using (var hmac = new HMACSHA256(macKey))
-            mac = hmac.ComputeHash(macInput);
+            var authenticatedLength = output.Length - MacLength;
+            using (var hmac = new HMACSHA256(macKey))
+            {
+                var mac = hmac.ComputeHash(output, 0, authenticatedLength);
+                Buffer.BlockCopy(mac, 0, output, authenticatedLength, MacLength);
+            }
 
-        // Output: IV || ciphertext || MAC
-        var output = new byte[IvLength + ciphertext.Length + MacLength];
-        Buffer.BlockCopy(iv,         0, output, 0,                         IvLength);
-        Buffer.BlockCopy(ciphertext, 0, output, IvLength,                  ciphertext.Length);
-        Buffer.BlockCopy(mac,        0, output, IvLength + ciphertext.Length, MacLength);
-
-        return Convert.ToBase64String(output)
-            .Replace('+', '-')
-            .Replace('/', '_')
-            .TrimEnd('=');
+            return Convert.ToBase64String(output).Replace('+', '-').Replace('/', '_').TrimEnd('=');
+        }
+        finally
+        {
+            Zero(encKey);
+            Zero(macKey);
+            Zero(plaintext);
+        }
     }
 
     /// <summary>
-    /// Verifies the MAC, decrypts, and deserialises a string produced by <see cref="ToTokenString"/>.
-    /// MAC verification happens before decryption to prevent padding oracle attacks.
+    /// Verifies the MAC, decrypts, and deserialises a token. The MAC is verified before decryption.
+    /// The token must carry key id 0.
     /// </summary>
-    /// <param name="tokenString">The URL-safe base64 token string.</param>
-    /// <param name="systemSecret">The same secret used during <see cref="ToTokenString"/>.</param>
-    /// <param name="time">The time is used to verify the token expiration.</param>
     /// <exception cref="ArgumentException">Thrown when inputs are null/invalid.</exception>
     /// <exception cref="FormatException">Thrown when the token string is malformed.</exception>
-    /// <exception cref="CryptographicException">Thrown when MAC or decryption fails.</exception>
-    public static AuthenticatedValue FromTokenString(string tokenString, byte[] systemSecret, ITimeSystem time)
+    /// <exception cref="CryptographicException">Thrown when MAC or decryption fails, or the token has expired.</exception>
+    public static AuthenticatedValue FromTokenString(string tokenString, byte[] systemSecret, ITimeSystem time, string purpose)
+        => FromTokenString(tokenString, new[] { systemSecret }, time, purpose);
+
+    /// <summary>
+    /// Verifies a token against a list of secrets for key rotation. A token's key id is the index
+    /// into <paramref name="systemSecrets"/>: append new secrets, never reorder or remove while
+    /// tokens signed with them can still be valid.
+    /// </summary>
+    public static AuthenticatedValue FromTokenString(string tokenString, IReadOnlyList<byte[]> systemSecrets, ITimeSystem time, string purpose)
     {
         if (string.IsNullOrEmpty(tokenString))
             throw new ArgumentException("tokenString must not be null or empty.", nameof(tokenString));
         if (time is null)
             throw new ArgumentException("Time must not be null.", nameof(time));
-        ValidateSecret(systemSecret);
+        if (systemSecrets is null || systemSecrets.Count == 0)
+            throw new ArgumentException("At least one secret is required.", nameof(systemSecrets));
+        foreach (var secret in systemSecrets) ValidateSecret(secret);
+        ValidatePurpose(purpose);
 
-        byte[] encoded = DecodeBase64Url(tokenString);
-
-        // Minimum: IV + one AES block (16 bytes) + MAC
-        if (encoded.Length < IvLength + 16 + MacLength)
-            throw new FormatException("Invalid token string: too short.");
-
-        var (encKey, macKey) = DeriveKeys(systemSecret);
-        var (iv, ciphertext) = SplitAndVerifyMac(encoded, macKey);
-        byte[] plaintext     = DecryptAesCbc(iv, ciphertext, encKey);
-        var (value, expiration) = ParsePlaintext(plaintext);
-
-        if (expiration < time.UtcNow)
-            throw new CryptographicException("Token has expired.");
-
-        return new AuthenticatedValue(value, expiration);
-    }
-
-    private static byte[] DecodeBase64Url(string tokenString)
-    {
         var base64 = tokenString.Replace('-', '+').Replace('_', '/');
         base64 += new string('=', (4 - base64.Length % 4) % 4);
-        try { return Convert.FromBase64String(base64); }
+
+        byte[] encoded;
+        try { encoded = Convert.FromBase64String(base64); }
         catch (FormatException ex) { throw new FormatException("Invalid token string: base64 decode failed.", ex); }
+
+        if (encoded.Length < HeaderLength + IvLength + 16 + MacLength)
+            throw new FormatException("Invalid token string: too short.");
+        if (encoded[0] != FormatVersion)
+            throw new FormatException("Invalid token string: unsupported version.");
+        var keyId = encoded[1];
+        if (keyId >= systemSecrets.Count)
+            throw new CryptographicException("Token integrity check failed: unknown key.");
+
+        var (encKey, macKey) = DeriveKeys(systemSecrets[keyId], purpose);
+        try
+        {
+            return Deserialise(encoded, encKey, macKey, time);
+        }
+        finally
+        {
+            Zero(encKey);
+            Zero(macKey);
+        }
     }
 
-    private static (byte[] iv, byte[] ciphertext) SplitAndVerifyMac(byte[] encoded, byte[] macKey)
+    /// <summary>
+    /// Non-throwing variant for request paths: returns false for every malformed, tampered,
+    /// wrong-purpose, unknown-key or expired token without revealing why. Invalid arguments
+    /// (null/weak secret, null time, empty purpose) still throw, as they are programming errors.
+    /// </summary>
+    public static bool TryFromTokenString(string? tokenString, IReadOnlyList<byte[]> systemSecrets, ITimeSystem time,
+        string purpose, out AuthenticatedValue? value)
     {
-        int ciphertextLength = encoded.Length - IvLength - MacLength;
-        var iv          = new byte[IvLength];
-        var ciphertext  = new byte[ciphertextLength];
-        var embeddedMac = new byte[MacLength];
-        Buffer.BlockCopy(encoded, 0,                          iv,          0, IvLength);
-        Buffer.BlockCopy(encoded, IvLength,                   ciphertext,  0, ciphertextLength);
-        Buffer.BlockCopy(encoded, IvLength + ciphertextLength, embeddedMac, 0, MacLength);
+        value = null;
+        if (string.IsNullOrEmpty(tokenString)) return false;
+        try
+        {
+            value = FromTokenString(tokenString!, systemSecrets, time, purpose);
+            return true;
+        }
+        catch (Exception ex) when (ex is FormatException || ex is CryptographicException)
+        {
+            return false;
+        }
+    }
 
-        var macInput = new byte[IvLength + ciphertextLength];
-        Buffer.BlockCopy(iv,         0, macInput, 0,        IvLength);
-        Buffer.BlockCopy(ciphertext, 0, macInput, IvLength, ciphertextLength);
+    /// <inheritdoc cref="TryFromTokenString(string?, IReadOnlyList{byte[]}, ITimeSystem, string, out AuthenticatedValue?)"/>
+    public static bool TryFromTokenString(string? tokenString, byte[] systemSecret, ITimeSystem time,
+        string purpose, out AuthenticatedValue? value)
+        => TryFromTokenString(tokenString, new[] { systemSecret }, time, purpose, out value);
+
+    private static AuthenticatedValue Deserialise(byte[] encoded, byte[] encKey, byte[] macKey, ITimeSystem time)
+    {
+        int authenticatedLength = encoded.Length - MacLength;
+        var embeddedMac = new byte[MacLength];
+        Buffer.BlockCopy(encoded, authenticatedLength, embeddedMac, 0, MacLength);
 
         byte[] expectedMac;
         using (var hmac = new HMACSHA256(macKey))
-            expectedMac = hmac.ComputeHash(macInput);
+            expectedMac = hmac.ComputeHash(encoded, 0, authenticatedLength);
 
         if (!ConstantTimeEquals(embeddedMac, expectedMac))
             throw new CryptographicException("Token integrity check failed: MAC mismatch.");
 
-        return (iv, ciphertext);
-    }
+        var iv = new byte[IvLength];
+        Buffer.BlockCopy(encoded, HeaderLength, iv, 0, IvLength);
+        int ciphertextOffset = HeaderLength + IvLength;
+        int ciphertextLength = authenticatedLength - ciphertextOffset;
 
-    // CA5401: IV is extracted from the authenticated token string and has already passed
-    // MAC verification in SplitAndVerifyMac; it is the same random IV generated during ToTokenString.
+        // CA5401: IV comes from the authenticated token and has already passed MAC verification.
 #pragma warning disable CA5401
-    private static byte[] DecryptAesCbc(byte[] iv, byte[] ciphertext, byte[] encKey)
-    {
+        byte[] plaintext;
         try
         {
             using var aes = Aes.Create();
@@ -184,61 +218,126 @@ public sealed class AuthenticatedValue : IEquatable<AuthenticatedValue>
             aes.Mode    = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
             using var decryptor = aes.CreateDecryptor();
-            return decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
+            plaintext = decryptor.TransformFinalBlock(encoded, ciphertextOffset, ciphertextLength);
         }
         catch (CryptographicException ex)
         {
             throw new CryptographicException("Token decryption failed.", ex);
         }
-    }
 #pragma warning restore CA5401
 
-    private static (byte[] value, DateTime expiration) ParsePlaintext(byte[] plaintext)
+        try
+        {
+            if (plaintext.Length < 4 + 8)
+                throw new FormatException("Invalid token string: plaintext too short.");
+
+            var valueLength = unchecked((int)ReadLittleEndian(plaintext, 0, 4));
+            if (valueLength < 0 || plaintext.Length != 4 + valueLength + 8)
+                throw new FormatException("Invalid token string: plaintext length mismatch.");
+
+            var value = new byte[valueLength];
+            if (valueLength > 0)
+                Buffer.BlockCopy(plaintext, 4, value, 0, valueLength);
+
+            var ticks = unchecked((long)ReadLittleEndian(plaintext, 4 + valueLength, 8));
+            if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                throw new FormatException("Invalid token string: expiration out of range.");
+            var expiration = new DateTime(ticks, DateTimeKind.Utc);
+
+            if (expiration < time.UtcNow)
+                throw new CryptographicException("Token has expired.");
+
+            return new AuthenticatedValue(value, expiration);
+        }
+        finally
+        {
+            Zero(plaintext);
+        }
+    }
+
+    private static void ValidatePurpose(string purpose)
     {
-        if (plaintext.Length < 4 + 8)
-            throw new FormatException("Invalid token string: plaintext too short.");
-
-        var valueLength = BitConverter.ToInt32(plaintext, 0);
-        if (valueLength < 0 || plaintext.Length != 4 + valueLength + 8)
-            throw new FormatException("Invalid token string: plaintext length mismatch.");
-
-        var value = new byte[valueLength];
-        if (valueLength > 0)
-            Buffer.BlockCopy(plaintext, 4, value, 0, valueLength);
-
-        var ticks      = BitConverter.ToInt64(plaintext, 4 + valueLength);
-        var expiration = new DateTime(ticks, DateTimeKind.Utc);
-        return (value, expiration);
+        if (string.IsNullOrWhiteSpace(purpose))
+            throw new ArgumentException("purpose must not be null or empty.", nameof(purpose));
     }
 
     private static void ValidateSecret(byte[] systemSecret)
     {
         if (systemSecret == null || systemSecret.Length < 32)
             throw new ArgumentException("systemSecret must be at least 32 bytes.", nameof(systemSecret));
+
+        // Reject trivially weak secrets (e.g. all zero, or a short pattern repeated).
+        var distinct = new HashSet<byte>(systemSecret);
+        if (distinct.Count < 8)
+            throw new ArgumentException(
+                "systemSecret is too weak: it must be random (use EncryptionUtilities.GenerateRandomKey(32)).",
+                nameof(systemSecret));
     }
 
     /// <summary>
-    /// Derives separate encryption and MAC keys from <paramref name="systemSecret"/>
-    /// using domain-separated HMAC-SHA256 so the same key material is never reused.
+    /// Derives separate encryption and MAC keys with HKDF-SHA256 (RFC 5869, zero salt).
+    /// Each key is one 32-byte HKDF output block, so the expand step is a single HMAC.
     /// </summary>
-    private static (byte[] encKey, byte[] macKey) DeriveKeys(byte[] systemSecret)
+    private static (byte[] encKey, byte[] macKey) DeriveKeys(byte[] systemSecret, string purpose)
     {
-        using var hmac = new HMACSHA256(systemSecret);
-        var encKey = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(EncLabel));
-        var macKey = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(MacLabel));
-        return (encKey, macKey);
+        byte[] prk;
+        using (var extract = new HMACSHA256(new byte[32]))
+            prk = extract.ComputeHash(systemSecret);
+        try
+        {
+            return (Expand(prk, EncLabel + purpose), Expand(prk, MacLabel + purpose));
+        }
+        finally
+        {
+            Zero(prk);
+        }
     }
 
-    /// <summary>
-    /// Constant-time byte array comparison — prevents timing side-channel attacks.
-    /// </summary>
+    private static byte[] Expand(byte[] prk, string info)
+    {
+        var infoBytes = System.Text.Encoding.UTF8.GetBytes(info);
+        var input = new byte[infoBytes.Length + 1];
+        Buffer.BlockCopy(infoBytes, 0, input, 0, infoBytes.Length);
+        input[infoBytes.Length] = 0x01;
+        using var hmac = new HMACSHA256(prk);
+        return hmac.ComputeHash(input);
+    }
+
+    private static void Zero(byte[] buffer)
+    {
+#if NETSTANDARD2_0
+        Array.Clear(buffer, 0, buffer.Length);
+#else
+        CryptographicOperations.ZeroMemory(buffer);
+#endif
+    }
+
+    private static void WriteLittleEndian(byte[] buffer, int offset, ulong value, int count)
+    {
+        for (int i = 0; i < count; i++)
+            buffer[offset + i] = (byte)(value >> (8 * i));
+    }
+
+    private static ulong ReadLittleEndian(byte[] buffer, int offset, int count)
+    {
+        ulong result = 0;
+        for (int i = 0; i < count; i++)
+            result |= (ulong)buffer[offset + i] << (8 * i);
+        return result;
+    }
+
+    /// <summary>Constant-time byte array comparison — prevents timing side-channel attacks.</summary>
     private static bool ConstantTimeEquals(byte[] a, byte[] b)
     {
+#if !NETSTANDARD2_0
+        return CryptographicOperations.FixedTimeEquals(a, b);
+#else
         if (a.Length != b.Length) return false;
         int diff = 0;
         for (int i = 0; i < a.Length; i++)
             diff |= a[i] ^ b[i];
         return diff == 0;
+#endif
     }
 
     public override bool Equals(object? obj) => obj is AuthenticatedValue other && Equals(other);
