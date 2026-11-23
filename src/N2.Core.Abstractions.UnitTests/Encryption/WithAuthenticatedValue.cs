@@ -51,7 +51,7 @@ public sealed class WithAuthenticatedValue
     {
         string token = CreateValidToken("test", DateTime.UtcNow.AddHours(1));
         Assert.Throws<ArgumentException>(() =>
-            AuthenticatedValue.FromTokenString(token, null!, CurrentTime, Purpose));
+            AuthenticatedValue.FromTokenString(token, (byte[])null!, CurrentTime, Purpose));
     }
 
     [TestMethod]
