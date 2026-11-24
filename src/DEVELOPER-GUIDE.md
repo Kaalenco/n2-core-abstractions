@@ -49,36 +49,15 @@ Test results (`.trx` files) are written to `src/TestResults/`.
 
 ## CI/CD
 
-Pipeline: `pipelines/azure-pipelines.yml` — registered in Azure DevOps under **N2 Vault services**.
-
-Triggers on push and PR to `trunk` when files under `src/N2.*/**` change. Commits that touch only documentation or the pipeline file itself do not trigger a run.
-
-| # | Stage | Runs on |
-|---|-------|---------|
-| 1 | **Build and Test** | push + PR to `trunk` |
-| 2 | **Code Analysis** | push + PR to `trunk` (parallel with Build) |
-| 3 | **Publish** | push to `trunk` only, after Build passes |
-
-The Publish stage downloads the `.nupkg` artifact from the Build stage and pushes it to the Azure Artifacts feed. Re-pushing an existing version is a no-op (`--skip-duplicate`).
-
-### Pipeline variables
-
-| Variable | Description | Value |
-|----------|-------------|-------|
-| `artifactsFeedName` | Azure Artifacts feed name | `vault-packages` |
-| `buildConfiguration` | MSBuild configuration | `Release` |
+GitHub Actions workflow `.github/workflows/dotnet.yml` builds, tests and publishes to `vault-packages` on push to `trunk`.
 
 ## Regular maintenance
-
-### Pipeline task versions
-
-The pipeline pins specific Azure DevOps task major versions (e.g. `DotNetCoreCLI@2`, `Cache@2`, `UseDotNet@2`). Periodically check the Azure DevOps Marketplace for new major releases and review the changelog for breaking changes before bumping.
 
 ### .NET SDK targets
 
 The library targets `netstandard2.0`, `netstandard2.1`, `net10.0`, and `net11.0`. When a .NET version reaches end-of-life:
 1. Remove its `<TargetFramework>` entry from `N2.Core.Abstractions.csproj`.
-2. Remove the matching `UseDotNet@2` step from the pipeline.
+2. Remove the matching SDK installation from `.github/workflows/dotnet.yml`.
 
 The `netstandard` targets are built by the .NET 10 and .NET 11 SDKs and do not require separate setup steps.
 
