@@ -1,5 +1,16 @@
 # Changelog
 
+## 3.0.1 - 2026-11-24
+
+Version unification release: all N2 packages move to 3.0.1. No API changes.
+
+- Version metadata: `Version`/`PackageVersion` 3.0.1, `AssemblyVersion` 3.0.0.0 (stable across
+  patch releases), `FileVersion` 3.0.1.0.
+- Source of truth is GitHub (`Kaalenco/n2-core-abstractions`). The GitHub Actions workflow builds,
+  tests and publishes to the `vault-packages` feed on pushes to `trunk`; the Azure Repos copy and
+  its pipeline are retired.
+- `src/nuget.config` maps `N2.*` to `vault-packages` and everything else to nuget.org.
+
 ## 3.0.0 - 2026-11-23
 
 Security release from the package security review (`src/N2.Core.Abstractions/security-review.md`).

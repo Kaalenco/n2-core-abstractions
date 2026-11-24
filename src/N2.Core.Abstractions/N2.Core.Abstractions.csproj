@@ -19,10 +19,11 @@
     <RootNamespace>N2.Core</RootNamespace>
     <ProductName>N2 Core libraries</ProductName>
 
-    <Version>3.0.0</Version>
-    <PackageVersion>3.0.0</PackageVersion>
-    <AssemblyVersion>3.0.0</AssemblyVersion>
-    <ProductVersion>3.0.0</ProductVersion>
+    <Version>3.0.1</Version>
+    <PackageVersion>3.0.1</PackageVersion>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.1.0</FileVersion>
+    <ProductVersion>3.0.1</ProductVersion>
 
     <PackageId>N2.Core.Abstractions</PackageId>
     <PackageType>Dependency</PackageType>
@@ -62,7 +63,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Abstractions" Version="23.0.1" />
+    <PackageReference Include="System.IO.Abstractions" Version="23.1.0" />
   </ItemGroup>
 
   <!--
